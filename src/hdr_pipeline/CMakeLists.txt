@@ -1,0 +1,34 @@
+cmake_minimum_required(VERSION 3.18)
+
+project(hdr_pipeline CXX CUDA)
+
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+
+add_executable(hdr_pipeline
+	"${SOURCE_DIR}/envmap.cpp"
+	"${SOURCE_DIR}/envmap.h"
+	"${SOURCE_DIR}/HDRPipeline.h"
+	"${SOURCE_DIR}/HDRPipeline.cpp"
+	"${SOURCE_DIR}/hdr_pipeline.cu"
+	"${SOURCE_DIR}/main.cpp"
+)
+
+if (INTERACTIVE)
+	target_sources(hdr_pipeline PRIVATE
+		"${SOURCE_DIR}/InputHandler.h"
+		"${SOURCE_DIR}/InputHandler.cpp"
+		"${SOURCE_DIR}/GLRenderer.h"
+		"${SOURCE_DIR}/GLRenderer.cpp"
+		"${SOURCE_DIR}/GLScene.h"
+		"${SOURCE_DIR}/GLScene.cpp"
+		"${SOURCE_DIR}/run_interactive.cpp"
+	)
+else ()
+	target_sources(hdr_pipeline PRIVATE
+		"${SOURCE_DIR}/run_noninteractive.cpp"
+	)
+endif ()
+
+configure_project(hdr_pipeline)
+
+target_link_libraries(hdr_pipeline utils)

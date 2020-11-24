@@ -1,0 +1,30 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: build-debug
+    image: cguds/cuda
+    pull: true
+    commands:
+      - mkdir build
+      - cd build
+      - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CUDA_ARCHITECTURES=70 ../src
+      - cmake --build . --target hdr_pipeline
+
+  - name: run
+    image: cguds/cuda
+    commands:
+      - build/bin/hdr_pipeline assets/LA_Downtown_Helipad_GoldenHour_3k.hdr
+
+  - name: memcheck
+    image: cguds/cuda
+    commands:
+      - cuda-memcheck --error-exitcode 42 build/bin/hdr_pipeline assets/LA_Downtown_Helipad_GoldenHour_3k.hdr
+
+trigger:
+  branch:
+    - master
+
+node:
+  env: dfki
