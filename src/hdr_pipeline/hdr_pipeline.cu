@@ -1,12 +1,14 @@
 #include <cstdint>
 #include "stdio.h"
-#include <math.h>
+//#include <math.h>
 
 __global__ void tonemap_kernel(std::uint32_t* out, const float* in, int width, int height, float exposure)
 {
 	
 	int x = (blockIdx.x*blockDim.x + threadIdx.x)*4;
 	int y = blockIdx.y*blockDim.y + threadIdx.y;
+//	if(x==0 and y==0)
+//		printf("Hello CUda\n");
 	if(y< height && x <= width*4-4){
 	float input_tone[3] = {in[y*width*4+x] * exposure,in[y*4*width+x+1]*exposure,in[y*4*width+x+2]*exposure};
 	float output_tone[3];
@@ -16,8 +18,8 @@ __global__ void tonemap_kernel(std::uint32_t* out, const float* in, int width, i
 		if(output_tone[i] <= 0.0031308)
 			output_tone[i] = 12.92 * output_tone[i];
 		else
-			output_tone[i] = 1.055 * pow(output_tone[i],1/2.4) - 0.055;
-		scaled_output[i] = (output_tone[i]>1) ? 255 : 255*output_tone[i];
+			output_tone[i] = 1.055 * powf(output_tone[i],1/2.4) - 0.055;
+		scaled_output[i] = (output_tone[i]>1) ? 255 : rintf(255*output_tone[i]);
 			
 	}
 	out[y*width+x/4] = 0;
