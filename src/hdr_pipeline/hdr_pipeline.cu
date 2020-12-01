@@ -1,6 +1,6 @@
 #include <cstdint>
 #include "stdio.h"
-//#include <math.h>
+#include "math.h"
 
 __global__ void tonemap_kernel(std::uint32_t* out, const float* in, int width, int height, float exposure)
 {
