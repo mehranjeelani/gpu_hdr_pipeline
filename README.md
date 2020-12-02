@@ -44,17 +44,18 @@ The `hdr_pipeline` project for tasks 1, 2, and 3 expects the HDR image to work o
 ```
 ./build/bin/hdr_pipeline assets/LA_Downtown_Helipad_GoldenHour_3k.hdr
 ```
-In interactive mode, HDR pipeline output will be displayed in a window in real-time. Otherwise, HDR pipeline output will be saved to `output.png`.
+In interactive mode, HDR pipeline output will be displayed in a window in real-time. Furthermore, the list of input files may also specify `.obj` files that contain 3D geometry to be added to the scene. In noninteractive mode, HDR pipeline output will be written to `<filename>.png`.
 
-The complete set of options for `hdr_pipeline`
+The complete set of options for `hdr_pipeline` is
 ```
-hdr_pipeline [{options}] <input-file>
+hdr_pipeline [{options}] {<input-file>}
 	options:
 	  --device <i>           use CUDA device <i>, default: 0
 	  --exposure <v>         set exposure value to <v>, default: 0.0
 	  --brightpass <v>       set brightpass threshold to <v>, default: 0.9
 	  --test-runs <N>        average timings over <N> test runs, default: 1
 ```
+
 
 
 [1]: https://graphics.cg.uni-saarland.de/courses/gpu-2020/index.html

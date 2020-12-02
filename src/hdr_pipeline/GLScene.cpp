@@ -1,4 +1,4 @@
-#include <iterator>
+#include <cmath>
 
 #include <GL/error.h>
 
@@ -51,11 +51,10 @@ void main()
 	vec2 p = vec2((gl_VertexID & 0x2) * 0.5f, (gl_VertexID & 0x1));
 	gl_Position = vec4(p * 4.0f - 1.0f, 1.0f, 1.0f);
 
-	vec4 p_far = camera.PV_inv * gl_Position;
-	vec4 p_near = camera.PV_inv * vec4(gl_Position.xy, -1.0f, 1.0f);
+	vec4 p_2 = camera.PV_inv * vec4(gl_Position.xy, 0.0f, 1.0f);
+	vec4 p_1 = camera.PV_inv * vec4(gl_Position.xy, -1.0f, 1.0f);
 
-	d = p_far.xyz / p_far.w - p_near.xyz / p_near.w;
-	//d = vec3(2.0f * p, 0.0f);
+	d = p_2.xyz / p_2.w - p_1.xyz / p_1.w;
 }
 )""";
 
@@ -75,8 +74,6 @@ R"""(
 void main()
 {
 	color = texture(envmap, lat_long(d));
-	//color = texture(envmap, d.xy);
-	//color = vec4(d, 1.0f);
 }
 )""";
 
@@ -89,20 +86,29 @@ R"""(
 layout(location = 0) in vec3 v_p;
 layout(location = 1) in vec3 v_n;
 
+out vec3 a_p;
 out vec3 a_n;
 
 void main()
 {
 	gl_Position = camera.PV * vec4(v_p, 1.0f);
-	a_n = (vec4(v_n, 0.0f) * camera.V_inv).xyz;
+	a_p = v_p;
+	//a_n = (vec4(v_n, 0.0f) * camera.V_inv).xyz;
+	a_n = v_n;
 }
 )""";
 
 	const char fs_model[] = R"""(
 #version 430
+)"""
+CAMERA
+LATLONG
+R"""(
 
-layout(location = 0) uniform vec4 albedo;
+layout(location = 0) uniform sampler2D envmap;
+layout(location = 1) uniform vec3 albedo = vec3(0.1f, 0.1f, 0.1f);
 
+in vec3 a_p;
 in vec3 a_n;
 
 layout(location = 0) out vec4 color;
@@ -110,20 +116,25 @@ layout(location = 0) out vec4 color;
 void main()
 {
 	vec3 n = normalize(a_n);
+	vec3 v = normalize(camera.position - a_p);
+	vec3 r = reflect(-v, n);
 
-	//float lambert = 1.0f;
-	//float lambert = max(dot(n, l), 0.0f);
+	float lambert = max(dot(n, v), 0.0f);
 
-	//color = vec4(albedo.rgb * lambert, albedo.a);
-	//color = vec4(-n.zzz, 1.0f);
-	color = vec4(n, 1.0f);
-	//color = vec4(t, 0.0f, 1.0f);
+	float bla = 1.0f - lambert;
+	float bla2 = bla * bla;
+
+	const float R_0 = 0.14f;
+
+	float R = R_0 + (1 - R_0) * bla2 * bla2 * bla;
+
+	color = vec4(R * texture(envmap, lat_long(r)).rgb + (1.0f - R) * albedo * lambert, 1.0f);
 }
 )""";
 }
 
-GLScene::GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env)
-	: camera(camera)
+GLScene::GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env, const float* vertex_data, GLsizei num_vertices, const std::uint32_t* index_data, GLsizei num_indices)
+	: camera(camera), num_indices(num_indices)
 {
 	{
 		auto vs = GL::compileVertexShader(::vs_env);
@@ -149,69 +160,33 @@ GLScene::GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env)
 
 	{
 		glBindTexture(GL_TEXTURE_2D, envmap);
-		glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA16F, static_cast<GLsizei>(width(env)), static_cast<GLsizei>(height(env)));
+		glTexStorage2D(GL_TEXTURE_2D, /*static_cast<GLsizei>(std::log2(std::max(width(env), height(env)))) +*/ 1, GL_RGBA16F, static_cast<GLsizei>(width(env)), static_cast<GLsizei>(height(env)));
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(width(env)), static_cast<GLsizei>(height(env)), GL_RGBA, GL_FLOAT, data(env));
+		//glGenerateMipmap(GL_TEXTURE_2D);
+
+		//glSamplerParameteri(envmap_sampler, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+		//glSamplerParameteri(envmap_sampler, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+		//glSamplerParameteri(envmap_sampler, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	}
 	GL::throw_error();
 
+	if (num_indices)
+	{
+		glBindVertexArray(vao_model);
+		glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+		glBufferStorage(GL_ARRAY_BUFFER, num_vertices * 6 * 4U, vertex_data, 0U);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+		glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, num_indices * 4U, index_data, 0U);
 
-	//const float vertices[] = {
-	// -1.0f, 1.0f,-1.0f, 0.0f, 0.0f,-1.0f,
-	// -1.0f,-1.0f,-1.0f, 0.0f, 0.0f,-1.0f,
-	// 1.0f, 1.0f,-1.0f, 0.0f, 0.0f,-1.0f,
-	// 1.0f,-1.0f,-1.0f, 0.0f, 0.0f,-1.0f,
-
-	// 1.0f, 1.0f,-1.0f, 1.0f, 0.0f, 0.0f,
-	// 1.0f,-1.0f,-1.0f, 1.0f, 0.0f, 0.0f,
-	// 1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-	// 1.0f,-1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-
-	// 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-	// 1.0f,-1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-	// -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-	// -1.0f,-1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-
-	// -1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 0.0f,
-	// -1.0f,-1.0f, 1.0f, -1.0f, 0.0f, 0.0f,
-	// -1.0f, 1.0f,-1.0f, -1.0f, 0.0f, 0.0f,
-	// -1.0f,-1.0f,-1.0f, -1.0f, 0.0f, 0.0f,
-
-	// -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-	// -1.0f, 1.0f,-1.0f, 0.0f, 1.0f, 0.0f,
-	// 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-	// 1.0f, 1.0f,-1.0f, 0.0f, 1.0f, 0.0f,
-
-	// -1.0f,-1.0f,-1.0f, 0.0f,-1.0f, 0.0f,
-	// -1.0f,-1.0f, 1.0f, 0.0f,-1.0f, 0.0f,
-	// 1.0f,-1.0f,-1.0f, 0.0f,-1.0f, 0.0f,
-	// 1.0f,-1.0f, 1.0f, 0.0f,-1.0f, 0.0f
-	//};
-
-	//const GLuint indices[] = {
-	//	 0,  1,  2,  1,  3,  2,
-	//	 4,  5,  6,  5,  7,  6,
-	//	 8,  9, 10,  9, 11, 10,
-	//	12, 13, 14, 13, 15, 14,
-	//	16, 17, 18, 17, 19, 18,
-	//	20, 21, 22, 21, 23, 22
-	//};
-
-	//glBindVertexArray(vao_model);
-	//glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-	//glBufferStorage(GL_ARRAY_BUFFER, sizeof(vertices), vertices, 0U);
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-	//glBufferStorage(GL_ELEMENT_ARRAY_BUFFER, sizeof(num_indices), indices, 0U);
-
-	//glBindVertexBuffer(0U, vertex_buffer, 0U, 24U);
-	//glEnableVertexAttribArray(0U);
-	//glEnableVertexAttribArray(1U);
-	//glVertexAttribFormat(0U, 3, GL_FLOAT, GL_FALSE, 0U);
-	//glVertexAttribFormat(1U, 3, GL_FLOAT, GL_FALSE, 12U);
-	//glVertexAttribBinding(0U, 0U);
-	//glVertexAttribBinding(1U, 0U);
-	//GL::throw_error();
-
-	//num_indices = static_cast<GLsizei>(std::size(indices));
+		glBindVertexBuffer(0U, vertex_buffer, 0U, 24U);
+		glEnableVertexAttribArray(0U);
+		glEnableVertexAttribArray(1U);
+		glVertexAttribFormat(0U, 3, GL_FLOAT, GL_FALSE, 0U);
+		glVertexAttribFormat(1U, 3, GL_FLOAT, GL_FALSE, 12U);
+		glVertexAttribBinding(0U, 0U);
+		glVertexAttribBinding(1U, 0U);
+		GL::throw_error();
+	}
 }
 
 void GLScene::draw(int framebuffer_width, int framebuffer_height) const
@@ -239,17 +214,19 @@ void GLScene::draw(int framebuffer_width, int framebuffer_height) const
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, envmap);
+	//glBindSampler(0, envmap_sampler);
 	glUniform1i(0, 0);
 
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 3);
 	GL::throw_error();
 
 
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthMask(GL_TRUE);
+	glEnable(GL_DEPTH_TEST);
+	glDepthMask(GL_TRUE);
 
-	//glBindVertexArray(vao_model);
-	//glUseProgram(prog_model);
-	//glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
-	//GL::throw_error();
+	glBindVertexArray(vao_model);
+	glUseProgram(prog_model);
+	glUniform1i(0, 0);
+	glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, nullptr);
+	GL::throw_error();
 }

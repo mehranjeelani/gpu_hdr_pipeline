@@ -294,7 +294,7 @@ namespace Radiance
 		std::ifstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw error("failed to open file");
+			throw error("failed to open file '" + filename.string() + '\'');
 
 		return read_image(sink, file);
 	}

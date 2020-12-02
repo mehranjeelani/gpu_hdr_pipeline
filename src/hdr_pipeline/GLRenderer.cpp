@@ -67,14 +67,15 @@ void main()
 #endif
 }
 
-GLRenderer::GLRenderer(int width, int height, float exposure, float brightpass_threshold)
-	: window("HDR Pipeline", 1024, 1024 * height / width),
+GLRenderer::GLRenderer(std::string title, int width, int height, float exposure, float brightpass_threshold)
+	: window(title.c_str(), 1024, 1024 * height / width),
 	  context(window.createContext(4, 3, true)),
 	  ctx(context, window),
 	  exposure(exposure),
-	  brightpass_threshold(brightpass_threshold)
+	  brightpass_threshold(brightpass_threshold),
+	  title(std::move(title))
 {
-	std::cout << "OpenGL on " << glGetString(GL_RENDERER) << std::endl;
+	std::cout << "\nOpenGL on " << glGetString(GL_RENDERER) << '\n' << std::flush;
 
 	glDebugMessageCallback(debug_output_callback, nullptr);
 	glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
@@ -152,7 +153,7 @@ void GLRenderer::render()
 				auto dt = std::chrono::duration<float>(now - next_fps_tick + 1s).count();
 
 				std::ostringstream str;
-				str << "HDR Pipeline  t = " << std::setprecision(2) << std::fixed << pipeline_time / frame_count << " ms\n";
+				str << title << " @ t = " << std::setprecision(2) << std::fixed << pipeline_time / frame_count << " ms\n";
 
 				window.title(str.str().c_str());
 

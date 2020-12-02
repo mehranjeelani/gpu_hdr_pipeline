@@ -1,14 +1,11 @@
-#include <cstdint>
-#include <cmath>
-#include <array>
+#include <exception>
 #include <iostream>
 #include <iomanip>
-#include <exception>
-
-#include <cuda_runtime_api.h>
+#include <filesystem>
 
 #include <utils/argparse.h>
-#include <utils/CUDA/error.h>
+
+#include "HDRDemo.h"
 
 using namespace std::literals;
 
@@ -17,7 +14,7 @@ namespace
 {
 	std::ostream& print_usage(std::ostream& out)
 	{
-		return out << R"""(usage: hdr_pipeline [{options}] <input-file>
+		return out << R"""(usage: hdr_pipeline [{options}] {<input-file>}
 	options:
 	  --device <i>           use CUDA device <i>, default: 0
 	  --exposure <v>         set exposure value to <v>, default: 0.0
@@ -31,7 +28,8 @@ int main(int argc, char* argv[])
 {
 	try
 	{
-		const char* envmap_path = nullptr;
+		HDRDemo demo;
+		std::filesystem::path envmap;
 		int cuda_device = 0;
 		float exposure_value = 0.0f;
 		float brightpass_threshold = 0.9f;
@@ -43,28 +41,25 @@ int main(int argc, char* argv[])
 			if (!argparse::parseFloatArgument(exposure_value, a, "--exposure"sv))
 			if (!argparse::parseFloatArgument(brightpass_threshold, a, "--brightpass"sv))
 			if (!argparse::parseIntArgument(test_runs, a, "--test-runs"))
-				envmap_path = *a;
+			{
+				std::filesystem::path input_file = *a;
+
+				auto ext = input_file.extension();
+
+				if (ext == ".hdr"sv || ext == ".pfm"sv)
+					envmap = std::move(input_file);
+				else
+					demo.add_model(input_file);
+			}
 		}
 
-		if (!envmap_path)
+		if (envmap.empty())
 			throw argparse::usage_error("expected input file");
 
-		cudaDeviceProp props;
-		throw_error(cudaGetDeviceProperties(&props, cuda_device));
-		std::cout << "using cuda device " << cuda_device << ":\n"
-		            "\t" << props.name << "\n"
-		            "\tcompute capability " << props.major << "." << props.minor << " @ " << std::setprecision(1) << std::fixed << props.clockRate / 1000.0f << " MHz\n"
-		            "\t" << props.multiProcessorCount << " multiprocessors\n"
-		            "\t" << props.totalGlobalMem / (1024U * 1024U) << " MiB global memory  " << props.sharedMemPerMultiprocessor / 1024 << " KiB shared memory\n" << std::endl;
+		if (test_runs < 0)
+			throw argparse::usage_error("number of test runs cannot be negative");
 
-		throw_error(cudaSetDevice(cuda_device));
-
-
-		void run(const char* envmap_path, float exposure_value, float brightpass_threshold, int test_runs);
-
-		float exposure = std::exp2(exposure_value);
-
-		run(envmap_path, exposure, brightpass_threshold, test_runs);
+		demo.run(envmap.filename().replace_extension(".png"), envmap, cuda_device, exposure_value, brightpass_threshold, test_runs);
 	}
 	catch (const argparse::usage_error& e)
 	{

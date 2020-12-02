@@ -7,8 +7,10 @@ namespace
 	{
 		const float s2 = 1.0f / std::tan(fov * 0.5f);
 		const float s1 = s2 / aspect;
-		const float z1 = (far + near) / (far - near);
-		const float z2 = -2.0f * near * far / (far - near);
+		//const float z1 = (far + near) / (far - near);
+		//const float z2 = -2.0f * near * far / (far - near);
+		const float z1 = 1.0f;
+		const float z2 = -2.0f * near;
 
 		return math::float4x4(s1, 0.0f, 0.0f, 0.0f,
 		                      0.0f, s2, 0.0f, 0.0f,

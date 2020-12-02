@@ -1,11 +1,15 @@
+#include <cstdint>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 
 #include <cuda_runtime_api.h>
 
 #include <utils/image.h>
-#include <utils/pfm.h>
 #include <utils/png.h>
+
+#include <utils/math/vector.h>
+
 #include <utils/CUDA/error.h>
 #include <utils/CUDA/memory.h>
 #include <utils/CUDA/array.h>
@@ -15,8 +19,22 @@
 #include "HDRPipeline.h"
 
 
-void run(const char* envmap_path, float exposure, float brightpass_threshold, int test_runs)
+namespace
 {
+	std::ostream& pad(std::ostream& out, int n)
+	{
+		for (int i = n; i > 0; --i) out.put(' ');
+		return out;
+	}
+}
+
+void run(const std::filesystem::path& output_file, const std::filesystem::path& envmap_path, const float* vertex_data, int num_vertices, const std::uint32_t* index_data, int num_indices, const math::float3& bb_min, const math::float3& bb_max, float exposure, float brightpass_threshold, int test_runs)
+{
+	if (num_vertices != 0 || num_indices != 0)
+		std::cerr << "\nWARNING: scene geometry ignored in noninteractive mode\n";
+
+	std::cout << "\nreading " << envmap_path << '\n' << std::flush;
+
 	auto envmap = load_envmap(envmap_path, false);
 
 	int image_width = static_cast<int>(width(envmap));
@@ -35,6 +53,11 @@ void run(const char* envmap_path, float exposure, float brightpass_threshold, in
 
 	float pipeline_time = 0.0f;
 
+	std::cout << '\n' << test_runs << " test run(s):\n";
+
+	int padding = static_cast<int>(std::log10(test_runs));
+	int next_padding_shift = 10;
+
 	for (int i = 0; i < test_runs; ++i)
 	{
 		throw_error(cudaEventRecord(pipeline_begin.get()));
@@ -43,15 +66,26 @@ void run(const char* envmap_path, float exposure, float brightpass_threshold, in
 
 		throw_error(cudaEventSynchronize(pipeline_end.get()));
 
-		pipeline_time += CUDA::elapsed_time(pipeline_begin.get(), pipeline_end.get());
+		auto t = CUDA::elapsed_time(pipeline_begin.get(), pipeline_end.get());
+
+
+		if ((i + 1) >= next_padding_shift)
+		{
+			--padding;
+			next_padding_shift *= 10;
+		}
+
+		pad(std::cout, padding) << "t_" << (i + 1) << ": " << std::setprecision(2) << std::fixed << t << " ms\n" << std::flush;
+
+		pipeline_time += t;
 	}
 
-	std::cout << "------------------------------------------------------------------------\n" << std::setprecision(2) << std::fixed <<
-	             "avg time: " << pipeline_time / test_runs << " ms\n";
+	std::cout << "avg time: " << std::setprecision(2) << std::fixed << pipeline_time / test_runs << " ms\n" << std::flush;
 
 
 	image2D<std::uint32_t> output(image_width, image_height);
 	throw_error(cudaMemcpy2DFromArray(data(output), width(output) * 4U, ldr_frame.get(), 0, 0, image_width * 4U, image_height, cudaMemcpyDeviceToHost));
 
-	PNG::saveImageR8G8B8("output.png", output);
+	std::cout << "\nsaving " << output_file << '\n' << std::flush;
+	PNG::saveImageR8G8B8(output_file.string().c_str(), output);
 }

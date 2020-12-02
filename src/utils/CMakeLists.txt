@@ -11,6 +11,7 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 add_library(utils STATIC
 	"${SOURCE_DIR}/argparse.h"
 	"${SOURCE_DIR}/argparse.cpp"
+	"${SOURCE_DIR}/io.h"
 	"${SOURCE_DIR}/image_io.h"
 	"${SOURCE_DIR}/radiance.h"
 	"${SOURCE_DIR}/radiance.cpp"
@@ -21,6 +22,10 @@ add_library(utils STATIC
 	"${SOURCE_DIR}/Camera.h"
 	"${SOURCE_DIR}/PerspectiveCamera.h"
 	"${SOURCE_DIR}/PerspectiveCamera.cpp"
+	"${SOURCE_DIR}/obj_stream.h"
+	"${SOURCE_DIR}/obj_reader.h"
+	"${SOURCE_DIR}/obj.h"
+	"${SOURCE_DIR}/obj.cpp"
 	"${SOURCE_DIR}/CUDA/error.h"
 	"${SOURCE_DIR}/CUDA/error.cpp"
 	"${SOURCE_DIR}/CUDA/event.h"

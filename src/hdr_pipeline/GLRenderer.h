@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <string>
 #include <optional>
 #include <chrono>
 
@@ -60,6 +61,8 @@ class GLRenderer : public virtual GL::platform::Renderer, private GL::platform::
 
 	long frame_count = 0;
 
+	std::string title;
+
 	std::chrono::steady_clock::time_point next_fps_tick = std::chrono::steady_clock::now();
 
 	float pipeline_time = 0.0f;
@@ -69,7 +72,7 @@ class GLRenderer : public virtual GL::platform::Renderer, private GL::platform::
 	void resize(int width, int height, GL::platform::Window*) override;
 
 public:
-	GLRenderer(int width, int height, float exposure, float brightpass_threshold);
+	GLRenderer(std::string title, int width, int height, float exposure, float brightpass_threshold);
 
 	void attach(GL::platform::MouseInputHandler* mouse_input);
 	void attach(GL::platform::KeyboardInputHandler* keyboard_input);

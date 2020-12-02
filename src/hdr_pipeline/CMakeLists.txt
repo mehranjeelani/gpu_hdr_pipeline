@@ -10,6 +10,8 @@ add_executable(hdr_pipeline
 	"${SOURCE_DIR}/HDRPipeline.h"
 	"${SOURCE_DIR}/HDRPipeline.cpp"
 	"${SOURCE_DIR}/hdr_pipeline.cu"
+	"${SOURCE_DIR}/HDRDemo.h"
+	"${SOURCE_DIR}/HDRDemo.cpp"
 	"${SOURCE_DIR}/main.cpp"
 )
 
