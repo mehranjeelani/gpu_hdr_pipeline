@@ -17,6 +17,12 @@ add_executable(hdr_pipeline
 
 if (INTERACTIVE)
 	target_sources(hdr_pipeline PRIVATE
+		"${SOURCE_DIR}/GLSL/camera"
+		"${SOURCE_DIR}/GLSL/envmap"
+		"${SOURCE_DIR}/GLSL/env.vs.glsl"
+		"${SOURCE_DIR}/GLSL/env.fs.glsl"
+		"${SOURCE_DIR}/GLSL/model.vs.glsl"
+		"${SOURCE_DIR}/GLSL/model.fs.glsl"
 		"${SOURCE_DIR}/InputHandler.h"
 		"${SOURCE_DIR}/InputHandler.cpp"
 		"${SOURCE_DIR}/GLRenderer.h"

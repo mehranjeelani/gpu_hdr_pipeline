@@ -78,7 +78,7 @@ public:
 	void attach(GL::platform::KeyboardInputHandler* keyboard_input);
 	void attach(const GLScene* scene);
 
-	void render();
+	void render() override;
 };
 
 #endif  // INCLUDED_GLRENDERER

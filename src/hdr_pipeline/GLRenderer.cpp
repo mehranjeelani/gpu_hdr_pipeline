@@ -153,7 +153,7 @@ void GLRenderer::render()
 				auto dt = std::chrono::duration<float>(now - next_fps_tick + 1s).count();
 
 				std::ostringstream str;
-				str << title << " @ t = " << std::setprecision(2) << std::fixed << pipeline_time / frame_count << " ms\n";
+				str << title << " @ t = " << std::setprecision(2) << std::fixed << pipeline_time / frame_count << " ms";
 
 				window.title(str.str().c_str());
 
