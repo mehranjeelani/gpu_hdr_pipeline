@@ -22,6 +22,7 @@ if (INTERACTIVE)
 	endif ()
 	add_subdirectory("${DEPENDENCIES_DIR}/GL_platform_tools/build/cmake" GL_platform_tools)
 	add_subdirectory("${DEPENDENCIES_DIR}/GL_core_tools/build/cmake" GL_core_tools)
+	include("${DEPENDENCIES_DIR}/GLSL_build_tools/build/cmake/add_glsl_sources.cmake")
 endif ()
 
 
@@ -37,8 +38,6 @@ function(configure_project name)
 		POSITION_INDEPENDENT_CODE ON
 	)
 
-	# set_property(TARGET ${name} PROPERTY CUDA_ARCHITECTURES ${CUDA_ARCH})
-
 	if (FULL_VERSION)
 		target_compile_definitions(${name} PRIVATE -DFULL_VERSION)
 	endif ()
@@ -52,7 +51,17 @@ function(configure_project name)
 		# endif ()
 	endif ()
 
+	get_target_property(SOURCES ${name} SOURCES)
+
+	list(FILTER SOURCES INCLUDE REGEX ".*\.glsl")
+
+	if (SOURCES)
+		add_glsl_sources(${name}_shaders ${SOURCES})
+		target_link_libraries(${name} ${name}_shaders)
+	endif ()
+
 	source_group("source" REGULAR_EXPRESSION ".*")
+	source_group("source/GLSL" REGULAR_EXPRESSION "(.*\.glsl)|(.*GLSL/.*)")
 
 	set_target_properties(${name} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/../")
 endfunction ()
@@ -68,6 +77,7 @@ if (INTERACTIVE)
 	endif ()
 	set_target_properties(GL_platform_tools PROPERTIES FOLDER "dependencies")
 	set_target_properties(GL_core_tools PROPERTIES FOLDER "dependencies")
+	set_target_properties(glsl2cpp PROPERTIES FOLDER "dependencies")
 endif ()
 set_target_properties(zlib PROPERTIES FOLDER "dependencies")
 set_target_properties(libpng PROPERTIES FOLDER "dependencies")

@@ -97,7 +97,7 @@ namespace PFM
 		std::ifstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw error("failed to open file");
+			throw error("failed to open file '" + filename.string() + '\'');
 
 		return read_image(sink, file);
 	}
@@ -107,7 +107,7 @@ namespace PFM
 		std::ofstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw error("failed to open file");
+			throw error("failed to open file '" + filename.string() + '\'');
 
 		::save(file, img, "Pf"sv);
 	}
@@ -117,7 +117,7 @@ namespace PFM
 		std::ofstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw error("failed to open file");
+			throw error("failed to open file '" + filename.string() + '\'');
 
 		::save(file, img, "PF"sv);
 	}

@@ -26,13 +26,14 @@ class GLScene
 	GL::Buffer camera_uniform_buffer;
 
 	GL::Texture envmap;
+	//GL::Sampler envmap_sampler;
 
 	GLsizei num_indices;
 
 	const Camera& camera;
 
 public:
-	GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env);
+	GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env, const float* vertex_data, GLsizei num_vertices, const std::uint32_t* index_data, GLsizei num_indices);
 
 	void draw(int framebuffer_width, int framebuffer_height) const;
 };

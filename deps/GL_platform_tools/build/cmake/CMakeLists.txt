@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.18)
 
 project(GL_platform_tools)
 
@@ -67,9 +67,9 @@ set_target_properties(GL_platform_tools PROPERTIES
 	POSITION_INDEPENDENT_CODE ON
 )
 
-target_link_libraries(GL_platform_tools PUBLIC ${OPENGL_gl_LIBRARY})
+target_link_libraries(GL_platform_tools PUBLIC OpenGL::GL)
 if (WIN32)
 	target_link_libraries(GL_platform_tools PUBLIC Win32_core_tools glcore)
 else ()
-	target_link_libraries(GL_platform_tools PUBLIC ${X11_LIBRARIES})
+	target_link_libraries(GL_platform_tools PUBLIC OpenGL::GLX X11::X11)
 endif ()
