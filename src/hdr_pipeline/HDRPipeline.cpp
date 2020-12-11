@@ -1,10 +1,10 @@
 #include <utils/CUDA/error.h>
 #include <utils/CUDA/memory.h>
-#include "iostream"
+
 #include "HDRPipeline.h"
 
 
-HDRPipeline::HDRPipeline(int width, int height,float)
+HDRPipeline::HDRPipeline(int width, int height)
 	: frame_width(width),
 	  frame_height(height),
 	  d_input_image(CUDA::malloc<float>(width * height * 4)),
@@ -14,15 +14,14 @@ HDRPipeline::HDRPipeline(int width, int height,float)
 
 
 void tonemap(std::uint32_t* out, const float* in, int width, int height, float exposure, float brightpass_threshold);
-void getAvgLum(const float* in,int width,int height,float exposure);
+float getAvgLum(const float* in,int width,int height,float exposure);
 
 void HDRPipeline::process(cudaArray_t out, cudaArray_t in, float exposure, float brightpass_threshold)
 {
 	throw_error(cudaMemcpy2DFromArray(d_input_image.get(), frame_width * 16U, in, 0, 0, frame_width * 16U, frame_height, cudaMemcpyDeviceToDevice));
-	
-	getAvgLum(d_input_image.get(),frame_width,frame_height,exposure);
-	tonemap(d_output_image.get(), d_input_image.get(), frame_width, frame_height, exposure, brightpass_threshold);
-	
+
+	float exposured = getAvgLum(d_input_image.get(),frame_width,frame_height,exposure);
+	tonemap(d_output_image.get(), d_input_image.get(), frame_width, frame_height, exposured, brightpass_threshold);
 
 
 	throw_error(cudaMemcpy2DToArray(out, 0, 0, d_output_image.get(), frame_width * 4U, frame_width * 4U, frame_height, cudaMemcpyDeviceToDevice));
