@@ -16,7 +16,10 @@ class HDRPipeline
 	int frame_height;
 
 	CUDA::unique_ptr<float> d_input_image;
+	CUDA::unique_ptr<float> d_brightPass_image;
 	CUDA::unique_ptr<std::uint32_t> d_output_image;
+	CUDA::unique_ptr<float> d_convolution_x_image;
+	CUDA::unique_ptr<float> d_convolution_image;
 
 public:
 	HDRPipeline(int width, int height);
