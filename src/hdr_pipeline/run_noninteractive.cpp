@@ -6,7 +6,7 @@
 #include <cuda_runtime_api.h>
 
 #include <utils/image.h>
-#include <utils/png.h>
+#include <utils/io/png.h>
 
 #include <utils/math/vector.h>
 
@@ -17,6 +17,7 @@
 
 #include "envmap.h"
 #include "HDRPipeline.h"
+#include "HDRDemo.h"
 
 
 namespace
@@ -28,9 +29,9 @@ namespace
 	}
 }
 
-void run(const std::filesystem::path& output_file, const std::filesystem::path& envmap_path, const float* vertex_data, int num_vertices, const std::uint32_t* index_data, int num_indices, const math::float3& bb_min, const math::float3& bb_max, float exposure, float brightpass_threshold, int test_runs)
+void HDRDemo::run(const std::filesystem::path& output_file, const std::filesystem::path& envmap_path, float exposure, float brightpass_threshold, int test_runs)
 {
-	if (num_vertices != 0 || num_indices != 0)
+	if (!vertices.empty() || !indices.empty())
 		std::cerr << "\nWARNING: scene geometry ignored in noninteractive mode\n";
 
 	std::cout << "\nreading " << envmap_path << '\n' << std::flush;

@@ -1,13 +1,25 @@
+#include <utils/io/png.h>
+#include <utils/screenshot.h>
+
+#include "GLRenderer.h"
 #include "InputHandler.h"
 
 
-InputHandler::InputHandler(OrbitalNavigator& navigator)
-	: navigator(navigator)
+InputHandler::InputHandler(OrbitalNavigator& navigator, GLRenderer& renderer)
+	: navigator(navigator), renderer(renderer)
 {
 }
 
-void InputHandler::keyDown(GL::platform::Key, GL::platform::Window*)
+void InputHandler::keyDown(GL::platform::Key key, GL::platform::Window*)
 {
+	switch (key)
+	{
+	case GL::platform::Key::F8:
+		PNG::saveImageR8G8B8A8(open_screenshot_file("HDRPipeline.png"), renderer.screenshot());
+		break;
+	default:
+		break;
+	}
 }
 
 void InputHandler::keyUp(GL::platform::Key, GL::platform::Window*)

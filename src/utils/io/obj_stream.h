@@ -11,7 +11,7 @@
 #include <iostream>
 #include <iomanip>
 
-#include <utils/obj.h>
+#include "obj.h"
 
 
 namespace OBJ

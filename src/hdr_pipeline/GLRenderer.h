@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <optional>
 #include <chrono>
@@ -23,6 +24,8 @@
 
 #include <utils/CUDA/event.h>
 #include <utils/CUDA/graphics_interop.h>
+
+#include <utils/image.h>
 
 #include "HDRPipeline.h"
 
@@ -49,7 +52,7 @@ class GLRenderer : public virtual GL::platform::Renderer, private GL::platform::
 
 	GL::VertexArray vao;
 
-	GL::Program prog;
+	GL::Program fullscreen_prog;
 
 	GL::Sampler sampler;
 
@@ -73,6 +76,8 @@ class GLRenderer : public virtual GL::platform::Renderer, private GL::platform::
 
 public:
 	GLRenderer(std::string title, int width, int height, float exposure, float brightpass_threshold);
+
+	image2D<std::uint32_t> screenshot() const;
 
 	void attach(GL::platform::MouseInputHandler* mouse_input);
 	void attach(GL::platform::KeyboardInputHandler* keyboard_input);

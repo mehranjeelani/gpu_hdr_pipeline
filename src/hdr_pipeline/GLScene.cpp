@@ -2,7 +2,7 @@
 
 #include <GL/error.h>
 
-#include <utils/pfm.h>
+#include <utils/io/pfm.h>
 #include <utils/Camera.h>
 
 #include "GLScene.h"
@@ -34,7 +34,7 @@ GLScene::GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env,
 
 
 	glBindBuffer(GL_UNIFORM_BUFFER, camera_uniform_buffer);
-	glBufferStorage(GL_UNIFORM_BUFFER, sizeof(Camera::UniformBuffer), nullptr, GL_DYNAMIC_STORAGE_BIT);
+	glBufferStorage(GL_UNIFORM_BUFFER, Camera::uniform_buffer_size, nullptr, GL_DYNAMIC_STORAGE_BIT);
 	GL::throw_error();
 
 
@@ -71,10 +71,10 @@ GLScene::GLScene(const Camera& camera, const image2D<std::array<float, 4>>& env,
 
 void GLScene::draw(int framebuffer_width, int framebuffer_height) const
 {
-	Camera::UniformBuffer camera_params;
-	camera.writeUniformBuffer(&camera_params, framebuffer_width * 1.0f / framebuffer_height);
+	std::byte camera_uniform_data[Camera::uniform_buffer_size];
+	camera.writeUniformBuffer(camera_uniform_data, framebuffer_width * 1.0f / framebuffer_height);
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0U, camera_uniform_buffer);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(Camera::UniformBuffer), &camera_params);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(camera_uniform_data), camera_uniform_data);
 
 	//glEnable(GL_CULL_FACE);
 	//glDisable(GL_CULL_FACE);

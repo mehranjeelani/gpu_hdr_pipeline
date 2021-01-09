@@ -3,23 +3,17 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include <utils/math/matrix.h>
 
 
 struct Camera
 {
-	struct UniformBuffer
-	{
-		alignas(16) math::float4x4 V;
-		alignas(16) math::float4x4 V_inv;
-		alignas(16) math::float4x4 P;
-		alignas(16) math::float4x4 P_inv;
-		alignas(16) math::float4x4 PV;
-		alignas(16) math::float4x4 PV_inv;
-		alignas(16) math::float3 position;
-	};
+	static constexpr std::size_t uniform_buffer_size = (6 * 4 * 4 + 3 + 1) * 4U;
+	static constexpr std::size_t uniform_buffer_alignment = 16U;
 
-	virtual void writeUniformBuffer(UniformBuffer* buffer, float aspect) const = 0;
+	virtual std::byte* writeUniformBuffer(std::byte* dest, float aspect) const = 0;
 
 protected:
 	Camera() = default;

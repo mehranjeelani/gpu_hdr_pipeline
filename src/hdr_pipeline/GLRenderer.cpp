@@ -22,37 +22,12 @@ using namespace std::literals;
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = 1U;
 #endif
 
+
+extern const char fullscreen_triangle_vs[];
+extern const char fullscreen_triangle_fs[];
+
 namespace
 {
-	const char vs[] = R"""(
-#version 430
-
-out vec2 t;
-
-void main()
-{
-	vec2 p = vec2((gl_VertexID & 0x2) * 0.5f, (gl_VertexID & 0x1));
-	gl_Position = vec4(p * 4.0f - 1.0f, 0.0f, 1.0f);
-	t = 2.0f * p;
-}
-)""";
-
-	const char fs[] = R"""(
-#version 430
-
-layout(location = 0) uniform sampler2D color_buffer;
-
-in vec2 t;
-
-layout(location = 0) out vec4 color;
-
-void main()
-{
-	color = texture(color_buffer, t);
-	//color = vec4(t, 0.0f, 1.0f);
-}
-)""";
-
 #ifdef WIN32
 	void APIENTRY debug_output_callback(GLenum /*source*/, GLenum /*type*/, GLuint /*id*/, GLenum /*severity*/, GLsizei /*length*/, const GLchar* message, const void* /*userParam*/)
 	{
@@ -83,14 +58,18 @@ GLRenderer::GLRenderer(std::string title, int width, int height, float exposure,
 
 	glEnable(GL_FRAMEBUFFER_SRGB);
 
-	auto vs = GL::compileVertexShader(::vs);
-	auto fs = GL::compileFragmentShader(::fs);
-
-	glAttachShader(prog, vs);
-	glAttachShader(prog, fs);
-	GL::linkProgram(prog);
+	{
+		auto vs = GL::compileVertexShader(fullscreen_triangle_vs);
+		auto fs = GL::compileFragmentShader(fullscreen_triangle_fs);
+		glAttachShader(fullscreen_prog, vs);
+		glAttachShader(fullscreen_prog, fs);
+		GL::linkProgram(fullscreen_prog);
+	}
 
 	window.attach(this);
+
+	ctx.setSwapInterval(0);
+
 	GL::throw_error();
 }
 
@@ -167,7 +146,7 @@ void GLRenderer::render()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(vao);
-	glUseProgram(prog);
+	glUseProgram(fullscreen_prog);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, ldr_buffer);
@@ -177,6 +156,22 @@ void GLRenderer::render()
 	GL::throw_error();
 
 	ctx.swapBuffers();
+}
+
+image2D<std::uint32_t> GLRenderer::screenshot() const
+{
+	image2D<std::uint32_t> buffer(framebuffer_width, framebuffer_height);
+
+	glReadBuffer(GL_FRONT);
+	glReadPixels(0, 0, framebuffer_width, framebuffer_height, GL_RGBA, GL_UNSIGNED_BYTE, data(buffer));
+	GL::throw_error();
+
+	using std::swap;
+	for (int y = 0; y < height(buffer) / 2; ++y)
+		for (int x = 0; x < width(buffer); ++x)
+			std::swap(buffer(x, y), buffer(x, height(buffer) - y - 1));
+
+	return buffer;
 }
 
 void GLRenderer::attach(GL::platform::MouseInputHandler* mouse_input)

@@ -14,7 +14,7 @@ namespace argparse
 
 
 	bool parseBoolFlag(const char* const*& argv, std::string_view option);
-	bool parseStringArgument(const char*& value, const char* const*& argv, std::string_view option);
+	const char* parseStringArgument(const char* const*& argv, std::string_view option);
 	bool parseIntArgument(int& value, const char* const*& argv, std::string_view option);
 	bool parseFloatArgument(float& value, const char* const*& argv, std::string_view option);
 }

@@ -4,6 +4,7 @@
 #include <cuda_runtime_api.h>
 
 #include <utils/CUDA/error.h>
+#include <utils/CUDA/device.h>
 
 #include "HDRDemo.h"
 
@@ -59,20 +60,8 @@ void HDRDemo::add_model(const std::filesystem::path& path)
 
 void HDRDemo::run(const std::filesystem::path& output_file, const std::filesystem::path& envmap, int cuda_device, float exposure_value, float brightpass_threshold, int test_runs)
 {
-	cudaDeviceProp props;
-	throw_error(cudaGetDeviceProperties(&props, cuda_device));
-	std::cout << "using cuda device " << cuda_device << ":\n"
-	            "\t" << props.name << "\n"
-	            "\tcompute capability " << props.major << "." << props.minor << " @ " << std::setprecision(1) << std::fixed << props.clockRate / 1000.0f << " MHz\n"
-	            "\t" << props.multiProcessorCount << " multiprocessors\n"
-	            "\t" << props.totalGlobalMem / (1024U * 1024U) << " MiB global memory  " << props.sharedMemPerMultiprocessor / 1024 << " KiB shared memory\n" << std::flush;
-
+	CUDA::print_device_properties(std::cout, cuda_device) << '\n' << std::flush;
 	throw_error(cudaSetDevice(cuda_device));
 
-
-	void run(const std::filesystem::path& output_file, const std::filesystem::path& envmap, const float* vertex_data, int num_vertices, const std::uint32_t* index_data, int num_indices, const math::float3& bb_min, const math::float3& bb_max, float exposure, float brightpass_threshold, int test_runs);
-
-	float exposure = std::exp2(exposure_value);
-
-	run(output_file, envmap, data(vertices), static_cast<int>(size(vertices) / 6), data(indices), static_cast<int>(size(indices)), bb_min, bb_max, exposure, brightpass_threshold, test_runs);
+	run(output_file, envmap, std::exp2(exposure_value), brightpass_threshold, test_runs);
 }

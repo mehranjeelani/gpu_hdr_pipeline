@@ -6,10 +6,10 @@
 #include <fstream>
 
 #include <utils/math/vector.h>
-#include <utils/obj_stream.h>
-#include <utils/obj_reader.h>
 
-#include <utils/obj.h>
+#include "obj_stream.h"
+#include "obj_reader.h"
+#include "obj.h"
 
 
 namespace

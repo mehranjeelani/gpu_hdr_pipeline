@@ -1,6 +1,7 @@
 #version 430
 
-#include "camera"
+#include <camera>
+
 #include "envmap"
 
 layout(location = 0) uniform sampler2D envmap;

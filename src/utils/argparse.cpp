@@ -23,26 +23,22 @@ namespace argparse
 		return true;
 	}
 
-	bool parseStringArgument(const char*& value, const char* const*& argv, std::string_view option)
+	const char* parseStringArgument(const char* const*& argv, std::string_view option)
 	{
 		if (!compareOption(*argv, option))
-			return false;
+			return nullptr;
 
 		const char* startptr = *argv + option.length();
 
 		if (*startptr)
-		{
-			value = startptr;
-			return true;
-		}
+			return startptr;
 
 		startptr = *++argv;
 
 		if (!*startptr)
 			throw usage_error("expected argument");
 
-		value = startptr;
-		return true;
+		return startptr;
 	}
 
 	bool parseIntArgument(int& value, const char* const*& argv, std::string_view option)

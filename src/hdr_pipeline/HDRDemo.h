@@ -7,7 +7,7 @@
 #include <vector>
 #include <filesystem>
 
-#include <utils/obj.h>
+#include <utils/io/obj.h>
 
 
 class HDRDemo : private virtual OBJ::MeshSink
@@ -20,6 +20,8 @@ class HDRDemo : private virtual OBJ::MeshSink
 
 	int add_vertex(const math::float3& position, const math::float3& normal) override;
 	void add_triangle(int v_1, int v_2, int v_3) override;
+
+	void run(const std::filesystem::path& output_file, const std::filesystem::path& envmap, float exposure, float brightpass_threshold, int test_runs);
 
 public:
 	void add_model(const std::filesystem::path& path);

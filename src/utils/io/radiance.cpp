@@ -7,7 +7,8 @@
 #include <fstream>
 #include <iomanip>
 
-#include "io.h"
+#include "../io.h"
+
 #include "radiance.h"
 
 using namespace std::literals;

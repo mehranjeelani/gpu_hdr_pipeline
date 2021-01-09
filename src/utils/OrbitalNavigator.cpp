@@ -46,7 +46,7 @@ void OrbitalNavigator::update()
 	v = math::float3(-st * cp, ct, -st * sp);
 	u = cross(v, w);
 
-	position = lookat - radius * w;
+	pos = lookat - radius * w;
 }
 
 void OrbitalNavigator::reset()
@@ -58,29 +58,29 @@ void OrbitalNavigator::reset()
 	update();
 }
 
-void OrbitalNavigator::writeWorldToLocalTransform(math::float4x4* M) const
+math::float4x4 OrbitalNavigator::world_to_local_transform() const
 {
-	*M = {
-		u.x, u.y, u.z, -dot(u, position),
-		v.x, v.y, v.z, -dot(v, position),
-		w.x, w.y, w.z, -dot(w, position),
+	return {
+		u.x, u.y, u.z, -dot(u, pos),
+		v.x, v.y, v.z, -dot(v, pos),
+		w.x, w.y, w.z, -dot(w, pos),
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 }
 
-void OrbitalNavigator::writeLocalToWorldTransform(math::float4x4* M) const
+math::float4x4 OrbitalNavigator::local_to_world_transform() const
 {
-	*M = {
-		u.x, v.x, w.x, position.x,
-		u.y, v.y, w.y, position.y,
-		u.z, v.z, w.z, position.z,
+	return {
+		u.x, v.x, w.x, pos.x,
+		u.y, v.y, w.y, pos.y,
+		u.z, v.z, w.z, pos.z,
 		0.0f, 0.0f, 0.0f, 1.0f
 	};
 }
 
-void OrbitalNavigator::writePosition(math::float3* p) const
+math::float3 OrbitalNavigator::position() const
 {
-	*p = OrbitalNavigator::position;
+	return pos;
 }
 
 
