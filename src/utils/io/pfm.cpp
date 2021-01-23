@@ -4,7 +4,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include "io.h"
+#include "../io.h"
 #include "pfm.h"
 
 using namespace std::literals;

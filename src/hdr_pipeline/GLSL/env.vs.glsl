@@ -1,6 +1,6 @@
 #version 430
 
-#include "camera"
+#include <camera>
 
 out vec3 d;
 

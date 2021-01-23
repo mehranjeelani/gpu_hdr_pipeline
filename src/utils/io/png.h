@@ -6,10 +6,11 @@
 #include <cstdint>
 #include <tuple>
 #include <iosfwd>
+#include <filesystem>
 
 #include <png.h>
 
-#include "image.h"
+#include "../image.h"
 
 
 namespace PNG
@@ -71,15 +72,17 @@ namespace PNG
 	};
 
 	std::tuple<int, int> readImageSize(std::istream& file);
-	std::tuple<int, int> readImageSize(const char* filename);
+	std::tuple<int, int> readImageSize(const std::filesystem::path& filename);
 
 	image2D<std::uint32_t> loadImage2DR8G8B8A8(std::istream& file);
-	image2D<std::uint32_t> loadImage2DR8G8B8A8(const char* filename);
+	image2D<std::uint32_t> loadImage2DR8G8B8A8(const std::filesystem::path& filename);
 
 	std::ostream& saveImageR8G8B8(std::ostream& file, const image2D<std::uint32_t>& surface);
-	void saveImageR8G8B8(const char* filename, const image2D<std::uint32_t>& surface);
+	inline std::ostream&& saveImageR8G8B8(std::ostream&& file, const image2D<std::uint32_t>& surface) { return std::move(saveImageR8G8B8(file, surface)); }
+	void saveImageR8G8B8(const std::filesystem::path& filename, const image2D<std::uint32_t>& surface);
 	std::ostream& saveImageR8G8B8A8(std::ostream& file, const image2D<std::uint32_t>& surface);
-	void saveImageR8G8B8A8(const char* filename, const image2D<std::uint32_t>& surface);
+	inline std::ostream&& saveImageR8G8B8A8(std::ostream&& file, const image2D<std::uint32_t>& surface) { return std::move(saveImageR8G8B8A8(file, surface)); }
+	void saveImageR8G8B8A8(const std::filesystem::path& filename, const image2D<std::uint32_t>& surface);
 }
 
 #endif  // INCLUDED_UTILS_PNG_FILE_FORMAT

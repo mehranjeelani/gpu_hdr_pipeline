@@ -9,7 +9,7 @@
 #include <stdexcept>
 
 #include "image_io.h"
-#include "image.h"
+#include "../image.h"
 
 
 namespace PFM

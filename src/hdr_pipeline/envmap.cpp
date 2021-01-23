@@ -4,9 +4,8 @@
 #include <variant>
 #include <stdexcept>
 
-#include <utils/image_io.h>
-#include <utils/radiance.h>
-#include <utils/pfm.h>
+#include <utils/io/radiance.h>
+#include <utils/io/pfm.h>
 
 #include "envmap.h"
 

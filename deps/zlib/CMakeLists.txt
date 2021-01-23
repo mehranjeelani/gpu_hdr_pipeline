@@ -14,5 +14,5 @@ if (MSVC)
 endif ()
 
 set_property(TARGET zlib PROPERTY POSITION_INDEPENDENT_CODE ON)
-target_compile_definitions(zlib PUBLIC Z_SOLO)
+target_compile_definitions(zlib PUBLIC ZLIB_CONST Z_SOLO)
 target_include_directories(zlib PUBLIC ${INCLUDE_DIR})

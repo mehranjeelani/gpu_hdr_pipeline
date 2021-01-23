@@ -4,9 +4,6 @@ project(Win32_core_tools)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(CMAKE_DEBUG_POSTFIX D)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<1:lib>")
-
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../source")
 

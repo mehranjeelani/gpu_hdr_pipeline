@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <utils/obj_stream.h>
+#include "obj_stream.h"
 
 
 namespace OBJ

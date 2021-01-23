@@ -140,12 +140,12 @@ namespace PNG
 		return std::tuple<int, int>(w, h);
 	}
 
-	std::tuple<int, int> readImageSize(const char* filename)
+	std::tuple<int, int> readImageSize(const std::filesystem::path& filename)
 	{
 		std::ifstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw std::runtime_error("unable to open '"s + filename + "'");
+			throw std::runtime_error("unable to open '"s + filename.string() + "'");
 
 		return readImageSize(file);
 	}
@@ -198,12 +198,12 @@ namespace PNG
 		return img;
 	}
 
-	image2D<std::uint32_t> loadImage2DR8G8B8A8(const char* filename)
+	image2D<std::uint32_t> loadImage2DR8G8B8A8(const std::filesystem::path& filename)
 	{
 		std::ifstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw std::runtime_error("unable to open '"s + filename + "'");
+			throw std::runtime_error("unable to open '"s + filename.string() + "'");
 
 		return loadImage2DR8G8B8A8(file);
 	}
@@ -222,12 +222,12 @@ namespace PNG
 		return file;
 	}
 
-	void saveImageR8G8B8(const char* filename, const image2D<std::uint32_t>& img)
+	void saveImageR8G8B8(const std::filesystem::path& filename, const image2D<std::uint32_t>& img)
 	{
 		std::ofstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw std::runtime_error("unable to open '"s + filename + "'");
+			throw std::runtime_error("unable to open '"s + filename.string() + "'");
 
 		saveImageR8G8B8(file, img);
 	}
@@ -245,12 +245,12 @@ namespace PNG
 		return file;
 	}
 
-	void saveImageR8G8B8A8(const char* filename, const image2D<std::uint32_t>& img)
+	void saveImageR8G8B8A8(const std::filesystem::path& filename, const image2D<std::uint32_t>& img)
 	{
 		std::ofstream file(filename, std::ios::binary);
 
 		if (!file)
-			throw std::runtime_error("unable to open '"s + filename + "'");
+			throw std::runtime_error("unable to open '"s + filename.string() + "'");
 
 		saveImageR8G8B8A8(file, img);
 	}

@@ -15,18 +15,14 @@ namespace X11::GL
 {
 	class Context
 	{
-		::Display* display;
-		GLXContext context;
+		::Display* display = nullptr;
+		GLXContext context = 0;
 
 	public:
 		Context(const Context&) = delete;
 		Context& operator =(const Context&) = delete;
 
-		Context()
-			: display(nullptr),
-			  context(0)
-		{
-		}
+		Context() = default;
 
 		Context(::Display* display, GLXContext context)
 			: display(display),
@@ -116,7 +112,12 @@ namespace X11::GL
 
 		void setSwapInterval(int interval)
 		{
-			glXSwapIntervalEXT(display, drawable, interval);
+			auto glXSwapInterval = reinterpret_cast<PFNGLXSWAPINTERVALEXTPROC>(glXGetProcAddressARB(reinterpret_cast<const GLubyte*>("glXSwapIntervalEXT")));
+
+			if (!glXSwapInterval)
+				throw std::runtime_error("failed to look up glXSwapIntervalEXT");
+
+			glXSwapInterval(display, drawable, interval);
 		}
 
 		void swapBuffers()

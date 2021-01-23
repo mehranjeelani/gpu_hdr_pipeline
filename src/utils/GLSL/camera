@@ -10,6 +10,7 @@ struct Camera
 	mat4x4 PV;
 	mat4x4 PV_inv;
 	vec3 position;
+	float aspect;
 };
 
 layout(std140, row_major, binding = 0) uniform CameraUniformBuffer

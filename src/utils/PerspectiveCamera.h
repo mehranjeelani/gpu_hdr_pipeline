@@ -19,8 +19,9 @@ class PerspectiveCamera : public virtual Camera
 public:
 	PerspectiveCamera(float fov, float near, float far);
 
+	std::byte* writeUniformBuffer(std::byte* dest, float aspect) const override;
+
 	void attach(const Navigator* navigator);
-	void writeUniformBuffer(UniformBuffer* buffer, float aspect) const override;
 };
 
 #endif  // INCLUDED_UTILS_PERSPECTIVE_CAMERA

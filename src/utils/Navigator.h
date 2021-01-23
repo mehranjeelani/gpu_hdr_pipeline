@@ -9,9 +9,9 @@
 struct Navigator
 {
 	virtual void reset() = 0;
-	virtual void writeWorldToLocalTransform(math::float4x4* M) const = 0;
-	virtual void writeLocalToWorldTransform(math::float4x4* M) const = 0;
-	virtual void writePosition(math::float3* p) const = 0;
+	virtual math::float4x4 world_to_local_transform() const = 0;
+	virtual math::float4x4 local_to_world_transform() const = 0;
+	virtual math::float3 position() const = 0;
 
 protected:
 	Navigator() = default;

@@ -8,12 +8,15 @@
 #include <utils/OrbitalNavigator.h>
 
 
+class GLRenderer;
+
 class InputHandler : public virtual GL::platform::KeyboardInputHandler, public virtual GL::platform::MouseInputHandler
 {
 	OrbitalNavigator& navigator;
+	GLRenderer& renderer;
 
 public:
-	InputHandler(OrbitalNavigator& navigator);
+	InputHandler(OrbitalNavigator& navigator, GLRenderer& renderer);
 
 	InputHandler(const InputHandler&) = delete;
 	InputHandler& operator =(const InputHandler&) = delete;

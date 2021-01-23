@@ -13,7 +13,7 @@ class OrbitalNavigator : public Navigator, public virtual GL::platform::MouseInp
 	math::float3 u;
 	math::float3 v;
 	math::float3 w;
-	math::float3 position;
+	math::float3 pos;
 
 	math::int2 last_pos;
 	unsigned int drag;
@@ -38,9 +38,9 @@ public:
 	OrbitalNavigator(float phi, float theta, float radius, const math::float3& lookat);
 
 	void reset() override;
-	void writeWorldToLocalTransform(math::float4x4* M) const override;
-	void writeLocalToWorldTransform(math::float4x4* M) const override;
-	void writePosition(math::float3* p) const override;
+	math::float4x4 world_to_local_transform() const override;
+	math::float4x4 local_to_world_transform() const override;
+	math::float3 position() const override;
 
 	void buttonDown(GL::platform::Button button, int x, int y, GL::platform::Window*) override;
 	void buttonUp(GL::platform::Button button, int x, int y, GL::platform::Window*) override;

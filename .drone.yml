@@ -10,17 +10,17 @@ steps:
       - mkdir build
       - cd build
       - cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CUDA_ARCHITECTURES=70 ../src
-      - cmake --build . --target hdr_pipeline
+      - cmake --build . --target particles
 
   - name: run
     image: cguds/cuda
     commands:
-      - build/bin/hdr_pipeline assets/LA_Downtown_Helipad_GoldenHour_3k.hdr
+      - build/bin/particles assets/12345_42.particles
 
   - name: memcheck
     image: cguds/cuda
     commands:
-      - cuda-memcheck --error-exitcode 42 build/bin/hdr_pipeline assets/LA_Downtown_Helipad_GoldenHour_3k.hdr
+      - cuda-memcheck --error-exitcode 42 build/bin/particles assets/12345_42.particles
 
 trigger:
   branch:
