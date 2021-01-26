@@ -13,6 +13,10 @@ class ParticleSystem
 {
 	const std::size_t num_particles;
 	const ParticleSystemParameters params;
+	float* currentPos;
+	float* prevPos;
+	std::uint32_t* particleColor;
+	
 
 public:
 	ParticleSystem(std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const ParticleSystemParameters& params);
