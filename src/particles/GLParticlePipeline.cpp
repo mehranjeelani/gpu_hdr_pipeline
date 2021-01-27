@@ -22,11 +22,13 @@ GLParticlePipeline::GLParticlePipeline()
 	GL::throw_error();
 }
 
-void GLParticlePipeline::draw(GLsizei num_particles, GLuint vao) const
+void GLParticlePipeline::draw(GLsizei offset, GLsizei num_particles, GLuint vao) const
 {
+	glDisable(GL_BLEND);
+
 	glBindVertexArray(vao);
 	glUseProgram(particle_prog);
-	glDrawArrays(GL_POINTS, 0, num_particles);
+	glDrawArrays(GL_POINTS, offset, num_particles);
 
 	GL::throw_error();
 }

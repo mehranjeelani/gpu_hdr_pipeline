@@ -25,6 +25,7 @@
 
 #include "ParticleSystemLoader.h"
 #include "GLParticlePipeline.h"
+#include "GLBoundingBox.h"
 
 
 class GLCUDAParticles : public virtual GLScene
@@ -35,7 +36,9 @@ class GLCUDAParticles : public virtual GLScene
 
 	GLParticlePipeline pipeline;
 
-	GL::VertexArray vao;
+	GL::VertexArray particles_vao;
+
+	GLBoundingBox bounding_box;
 
 	GL::Buffer particle_position_buffer;
 	GL::Buffer particle_color_buffer;
@@ -50,11 +53,11 @@ class GLCUDAParticles : public virtual GLScene
 	std::unique_ptr<std::uint32_t[]> initial_color;
 
 public:
-	GLCUDAParticles(particle_system_instance particles, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color);
+	GLCUDAParticles(particle_system_instance particles, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const math::float3& bb_min, const math::float3& bb_max);
 
 	void reset() override;
 	float update(int steps, float dt) override;
-	void draw() const override;
+	void draw(bool draw_bounding_box) const override;
 };
 
 #endif  // INCLUDED_GL_CUDA_PARTICLES

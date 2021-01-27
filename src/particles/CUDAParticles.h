@@ -5,12 +5,15 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <iosfwd>
 
 #include <cuda_runtime_api.h>
 
 #include <utils/CUDA/memory.h>
 #include <utils/CUDA/event.h>
 
+#include "particle_system_state.h"
 #include "particle_system_module.h"
 
 #include "ParticleSystemLoader.h"
@@ -28,8 +31,13 @@ class CUDAParticles
 	CUDA::unique_event particles_begin;
 	CUDA::unique_event particles_end;
 
+	std::unique_ptr<float[]> position_download_buffer;
+	std::unique_ptr<std::uint32_t[]> color_download_buffer;
+
+	ParticleReplayWriter writer;
+
 public:
-	CUDAParticles(particle_system_instance particles, std::size_t num_particles);
+	CUDAParticles(std::ostream& file, particle_system_module& module, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params);
 
 	float update(int steps, float dt);
 };

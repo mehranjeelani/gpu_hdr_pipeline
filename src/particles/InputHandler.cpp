@@ -19,6 +19,7 @@ InputHandler::InputHandler(OrbitalNavigator& navigator, GLRenderer& renderer, GL
 	[right]             advance by one frame
 	[page down]         advance by 10 frames
 	[backspace]         reset
+	[F2]                toggle bounding box
 	[F8]                take screenshot
 
 )"""sv << std::flush;
@@ -39,6 +40,12 @@ void InputHandler::keyDown(GL::platform::Key key, GL::platform::Window*)
 		break;
 	case GL::platform::Key::BACKSPACE:
 		renderer.reset();
+		break;
+	case GL::platform::Key::F1:
+		renderer.toggle_fps();
+		break;
+	case GL::platform::Key::F2:
+		scene.toggle_bounding_box();
 		break;
 	case GL::platform::Key::F8:
 		PNG::saveImageR8G8B8A8(open_screenshot_file("Particles.png"), renderer.screenshot());

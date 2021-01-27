@@ -12,7 +12,7 @@
 #include "ParticleDemo.h"
 
 
-void ParticleDemo::run(std::filesystem::path output_file, const std::filesystem::path& input_file, int N, float dt, int cuda_device)
+void ParticleDemo::run(std::filesystem::path output_file, const std::filesystem::path& input_file, int N, int subsample, float dt, int cuda_device)
 {
 	if (!output_file.empty())
 		std::cerr << "WARNING: output file ignored in interactive mode\n";

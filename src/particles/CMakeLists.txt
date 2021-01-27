@@ -41,14 +41,18 @@ if (INTERACTIVE)
 		"${SOURCE_DIR}/GLSL/particle.vs.glsl"
 		"${SOURCE_DIR}/GLSL/particle.gs.glsl"
 		"${SOURCE_DIR}/GLSL/particle.fs.glsl"
+		"${SOURCE_DIR}/GLSL/bounding_box.vs.glsl"
+		"${SOURCE_DIR}/GLSL/bounding_box.fs.glsl"
 		"${SOURCE_DIR}/InputHandler.h"
 		"${SOURCE_DIR}/InputHandler.cpp"
 		"${SOURCE_DIR}/GLParticlePipeline.h"
 		"${SOURCE_DIR}/GLParticlePipeline.cpp"
-		"${SOURCE_DIR}/GLParticleReplay.h"
-		"${SOURCE_DIR}/GLParticleReplay.cpp"
+		"${SOURCE_DIR}/GLBoundingBox.h"
+		"${SOURCE_DIR}/GLBoundingBox.cpp"
 		"${SOURCE_DIR}/GLScene.h"
 		"${SOURCE_DIR}/GLScene.cpp"
+		"${SOURCE_DIR}/GLParticleReplay.h"
+		"${SOURCE_DIR}/GLParticleReplay.cpp"
 		"${SOURCE_DIR}/GLRenderer.h"
 		"${SOURCE_DIR}/GLRenderer.cpp"
 		"${SOURCE_DIR}/GLParticleDemo.h"
@@ -74,10 +78,9 @@ if (CUDAToolkit_FOUND)
 	add_dependencies(particles particle_system)
 else ()
 	if (INTERACTIVE)
-		# target_sources(particles PRIVATE
-		# 	"${SOURCE_DIR}/GLNoCUDAParticleDemo.cpp"
-		# )
-		message(FATAL_ERROR "replay mode not implemented yet")
+		target_sources(particles PRIVATE
+			"${SOURCE_DIR}/GLNoCUDAParticleDemo.cpp"
+		)
 	else ()
 		message(FATAL_ERROR "cannot build particles in neither interactive mode nor with CUDA")
 	endif ()
