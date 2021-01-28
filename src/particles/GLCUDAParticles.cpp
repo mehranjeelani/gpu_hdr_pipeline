@@ -11,27 +11,26 @@
 #include "GLCUDAParticles.h"
 
 
-GLCUDAParticles::GLCUDAParticles(particle_system_instance particles, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color)
+GLCUDAParticles::GLCUDAParticles(particle_system_instance particles, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const math::float3& bb_min, const math::float3& bb_max)
 	: particles(std::move(particles)),
+	  bounding_box(bb_min, bb_max),
 	  num_particles(static_cast<GLsizei>(num_particles)),
 	  particles_begin(CUDA::create_event()),
 	  particles_end(CUDA::create_event()),
 	  initial_position(std::move(position)),
 	  initial_color(std::move(color))
 {
-	particle_position_buffer = GL::Buffer();
 	glBindBuffer(GL_ARRAY_BUFFER, particle_position_buffer);
 	glBufferStorage(GL_ARRAY_BUFFER, num_particles * 16U, nullptr, 0U);
 	particle_position_buffer_resource = CUDA::graphics::register_GL_buffer(particle_position_buffer, cudaGraphicsMapFlagsReadOnly);
 
-	particle_color_buffer = GL::Buffer();
 	glBindBuffer(GL_ARRAY_BUFFER, particle_color_buffer);
 	glBufferStorage(GL_ARRAY_BUFFER, num_particles * 4U, nullptr, 0U);
 	particle_color_buffer_resource = CUDA::graphics::register_GL_buffer(particle_color_buffer, cudaGraphicsMapFlagsReadOnly);
 
 	GL::throw_error();
 
-	glBindVertexArray(vao);
+	glBindVertexArray(particles_vao);
 	glBindVertexBuffer(0U, particle_position_buffer, 0U, 16U);
 	glEnableVertexAttribArray(0U);
 	glVertexAttribBinding(0U, 0U);
@@ -68,7 +67,10 @@ float GLCUDAParticles::update(int steps, float dt)
 	return CUDA::elapsed_time(particles_begin.get(), particles_end.get());
 }
 
-void GLCUDAParticles::draw() const
+void GLCUDAParticles::draw(bool draw_bounding_box) const
 {
-	pipeline.draw(num_particles, vao);
+	pipeline.draw(0, num_particles, particles_vao);
+
+	if(draw_bounding_box)
+		bounding_box.draw();
 }

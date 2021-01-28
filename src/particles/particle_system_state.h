@@ -17,7 +17,7 @@
 
 struct ParticleReplayBuilder
 {
-	virtual void add_frame(std::chrono::nanoseconds dt, float* positions, const std::uint32_t* colors) = 0;
+	virtual void add_frame(std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors) = 0;
 
 protected:
 	ParticleReplayBuilder() = default;
@@ -31,7 +31,7 @@ protected:
 struct ParticleSystemBuilder
 {
 	virtual void add_particle_simulation(std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params) = 0;
-	virtual ParticleReplayBuilder& add_particle_replay(std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params) = 0;
+	virtual ParticleReplayBuilder& add_particle_replay(std::size_t num_particles, const float* position, const std::uint32_t* color, const ParticleSystemParameters& params) = 0;
 
 protected:
 	ParticleSystemBuilder() = default;
@@ -43,7 +43,7 @@ protected:
 };
 
 
-class ParticleReplayWriter: public virtual ParticleReplayBuilder
+class ParticleReplayWriter : public virtual ParticleReplayBuilder
 {
 	zlib_writer writer;
 	std::size_t num_particles;
@@ -51,7 +51,7 @@ class ParticleReplayWriter: public virtual ParticleReplayBuilder
 public:
 	ParticleReplayWriter(std::ostream& file, std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const ParticleSystemParameters& params);
 
-	void add_frame(std::chrono::nanoseconds dt, float* positions, const std::uint32_t* colors) override;
+	void add_frame(std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors) override;
 };
 
 

@@ -49,7 +49,7 @@ GLRenderer::GLRenderer(int max_frames, float dt, bool frozen)
 
 	glEnable(GL_FRAMEBUFFER_SRGB);
 	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	glClearColor(0.6f, 0.7f, 1.0f, 1.0f);
 	glClearDepth(1.0f);
@@ -86,6 +86,7 @@ void GLRenderer::render()
 		}
 	}
 
+	glDepthMask(GL_TRUE);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (scene)
@@ -98,21 +99,34 @@ void GLRenderer::render()
 
 	if (next_fps_tick <= now)
 	{
-		auto dt = std::chrono::duration<float>(now - next_fps_tick + 1s).count();
+		constexpr auto fps_update_timestep = 100ms;
 
-		std::ostringstream str;
-		str << "particles @ t_avg = "sv << std::setprecision(2) << std::fixed << update_time / step_count << " ms    "sv << dt * 1000.0f / frame_count << " mspf";
+		auto dt = std::chrono::duration<float>(now - next_fps_tick + fps_update_timestep).count();
 
-		window.title(str.str().c_str());
+		update_window_title(dt);
 
-		next_fps_tick = now + 1s;
+		next_fps_tick = now + fps_update_timestep;
 		frame_count = 0;
-		update_time = 0.0f;
 	}
 
 	GL::throw_error();
 
 	ctx.swapBuffers();
+}
+
+void GLRenderer::update_window_title(float dt)
+{
+	std::ostringstream str;
+	str << "particles @ t_avg = "sv
+	    << std::setprecision(3) << std::fixed << update_time / step_count << " ms    "sv
+	    << std::setw(static_cast<int>(std::log10(max_frames)) + 1) << step_count << " simulation steps * "sv
+	    << std::defaultfloat << std::chrono::duration<double>(timestep).count() << " s = "sv
+	    << std::fixed << std::setw(static_cast<int>(std::log10(std::chrono::duration<double>(max_frames * timestep).count())) + 4) << std::chrono::duration<double>(simulation_time).count() << " s";
+
+	if (show_fps)
+		str << "    "sv << std::setprecision(1) << std::fixed << dt * 1000.0f / frame_count << " mspf = "sv << frame_count / dt << " fps"sv;
+
+	window.title(str.str().c_str());
 }
 
 void GLRenderer::step(int steps)
@@ -147,6 +161,11 @@ bool GLRenderer::toggle_freeze()
 		last_update = std::chrono::steady_clock::now();
 
 	return frozen;
+}
+
+bool GLRenderer::toggle_fps()
+{
+	return show_fps = !show_fps;
 }
 
 void GLRenderer::attach(GL::platform::MouseInputHandler* mouse_input)

@@ -9,7 +9,7 @@
 class ParticleDemo
 {
 public:
-	void run(std::filesystem::path output_file, const std::filesystem::path& input_file, int N, float dt, int cuda_device);
+	void run(std::filesystem::path output_file, const std::filesystem::path& input_file, int N, int subsample, float dt, int cuda_device);
 };
 
 #endif  // INCLUDED_PARTICLEDEMO

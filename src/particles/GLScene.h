@@ -14,8 +14,10 @@ class GLScene
 
 	GL::Buffer camera_uniform_buffer;
 
+	bool draw_bounding_box = true;
+
 protected:
-	virtual void draw() const = 0;
+	virtual void draw(bool bounding_box) const = 0;
 
 	GLScene();
 
@@ -23,6 +25,8 @@ public:
 	virtual ~GLScene() = default;
 
 	void attach(const Camera* navigator);
+
+	bool toggle_bounding_box();
 
 	virtual void reset() = 0;
 	virtual float update(int steps, float dt) = 0;

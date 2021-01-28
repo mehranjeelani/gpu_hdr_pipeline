@@ -1,5 +1,7 @@
 #include <utility>
 #include <stdexcept>
+#include <variant>
+#include <vector>
 #include <iostream>
 
 #include <utils/CUDA/error.h>
@@ -9,6 +11,7 @@
 
 #include "ParticleSystemLoader.h"
 #include "GLCUDAParticles.h"
+#include "GLParticleReplay.h"
 #include "GLParticleDemo.h"
 
 
@@ -17,36 +20,59 @@ std::tuple<std::unique_ptr<GLScene>, math::float3, math::float3> load_scene(cons
 	CUDA::print_device_properties(std::cout, cuda_device) << '\n' << '\n' << std::flush;
 	throw_error(cudaSetDevice(cuda_device));
 
-	class SceneBuilder : private virtual ParticleSystemBuilder, private virtual ParticleReplayBuilder
+	class SceneBuilder : private virtual ParticleSystemBuilder
 	{
-		std::unique_ptr<GLScene> scene;
-		math::float3 bb_min;
-		math::float3 bb_max;
+		struct simulation_data
+		{
+			std::size_t num_particles;
+			std::unique_ptr<float[]> position;
+			std::unique_ptr<std::uint32_t[]> color;
+			ParticleSystemParameters params;
+		};
+
+		std::variant<simulation_data, GLParticleReplayBuilder> data;
+
 
 		void add_particle_simulation(std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params) override
 		{
-			static auto module = particle_system_module("particle_system");
-			auto particles = module.create_instance(num_particles, &position[0] + 0 * num_particles, &position[0] + 1 * num_particles, &position[0] + 2 * num_particles, &position[0] + 3 * num_particles, &color[0], params);
-			scene = std::make_unique<GLCUDAParticles>(std::move(particles), num_particles, std::move(position), std::move(color));
-			bb_min = { params.bb_min[0], params.bb_min[1], params.bb_min[2] };
-			bb_max = { params.bb_max[0], params.bb_max[1], params.bb_max[2] };
+			data.emplace<simulation_data>(simulation_data { num_particles, std::move(position), std::move(color), params });
 		}
 
-		ParticleReplayBuilder& add_particle_replay(std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params) override
+		ParticleReplayBuilder& add_particle_replay(std::size_t num_particles, const float* position, const std::uint32_t* color, const ParticleSystemParameters& params) override
 		{
-			throw std::runtime_error("particle replay not implemented yet");
-			return *this;
-		}
-
-		void add_frame(std::chrono::nanoseconds dt, float* positions, const std::uint32_t* colors) override
-		{
+			return data.emplace<GLParticleReplayBuilder>(num_particles, position, color, params);
 		}
 
 	public:
-		std::tuple<std::unique_ptr<GLScene>, math::float3, math::float3> load(const std::filesystem::path& path)
+		auto load(const std::filesystem::path& path)
 		{
 			load_particles(*this, path);
-			return { std::move(scene), bb_min, bb_max };
+
+			struct ParticleSystemFactory
+			{
+				std::tuple<std::unique_ptr<GLScene>, math::float3, math::float3> operator ()(simulation_data& data)
+				{
+					static auto module = particle_system_module("particle_system");
+
+					math::float3 bb_min = { data.params.bb_min[0], data.params.bb_min[1], data.params.bb_min[2] };
+					math::float3 bb_max = { data.params.bb_max[0], data.params.bb_max[1], data.params.bb_max[2] };
+
+					auto particles = module.create_instance(data.num_particles, &data.position[0] + 0 * data.num_particles, &data.position[0] + 1 * data.num_particles, &data.position[0] + 2 * data.num_particles, &data.position[0] + 3 * data.num_particles, &data.color[0], data.params);
+
+					return {
+						std::make_unique<GLCUDAParticles>(std::move(particles), data.num_particles, std::move(data.position), std::move(data.color), bb_min, bb_max),
+						bb_min,
+						bb_max
+					};
+				}
+
+				auto operator ()(GLParticleReplayBuilder& builder)
+				{
+					return builder.finish();
+				}
+			};
+
+			return std::visit(ParticleSystemFactory(), data);
 		}
 	};
 

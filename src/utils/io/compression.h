@@ -140,6 +140,14 @@ public:
 		operator ()(reinterpret_cast<std::byte*>(&data), sizeof(data));
 	}
 
+	template <typename T>
+	T read()
+	{
+		T data;
+		operator ()(data);
+		return data;
+	}
+
 	~zlib_reader()
 	{
 		while (stream.avail_in-- > 0)

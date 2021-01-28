@@ -44,7 +44,10 @@ class GLRenderer : public virtual GL::platform::Renderer, private GL::platform::
 
 	float update_time = 0.0f;
 
+	bool show_fps = false;
+
 	void resize(int width, int height, GL::platform::Window*) override;
+	void update_window_title(float dt);
 
 public:
 	GLRenderer(int max_frames, float dt, bool frozen);
@@ -52,6 +55,7 @@ public:
 	void reset();
 
 	bool toggle_freeze();
+	bool toggle_fps();
 
 	void step(int steps = 1);
 
