@@ -2,3 +2,4 @@
 /output
 *.particlereplay
 src/particles/.vscode/
+*.png
