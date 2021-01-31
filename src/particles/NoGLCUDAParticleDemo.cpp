@@ -1,5 +1,4 @@
 #include <utility>
-#include <optional>
 #include <iostream>
 #include <iomanip>
 #include <filesystem>
@@ -19,7 +18,7 @@
 
 namespace
 {
-	CUDAParticles load(std::ostream& output_file, const std::filesystem::path& path)
+	auto load(std::ostream& output_file, const std::filesystem::path& path)
 	{
 		class SceneBuilder : private virtual ParticleSystemBuilder, private virtual ParticleReplayBuilder
 		{
@@ -47,7 +46,7 @@ namespace
 			}
 
 		public:
-			CUDAParticles load(std::ostream& output_file, const std::filesystem::path& path)
+			auto load(std::ostream& output_file, const std::filesystem::path& path)
 			{
 				load_particles(*this, path);
 
@@ -56,7 +55,12 @@ namespace
 
 				static auto module = particle_system_module("particle_system");
 
-				return CUDAParticles(output_file, module, num_particles, std::move(position), std::move(color), params);
+				struct result_t { ParticleReplayWriter writer; CUDAParticles particles; };
+
+				return result_t {
+					ParticleReplayWriter(output_file, num_particles, &position[0] + 0 * num_particles, &position[0] + 1 * num_particles, &position[0] + 2 * num_particles, &position[0] + 3 * num_particles, &color[0], params),
+					CUDAParticles(module, num_particles, std::move(position), std::move(color), params)
+				};
 			}
 		};
 
@@ -79,35 +83,39 @@ void ParticleDemo::run(std::filesystem::path output_file, const std::filesystem:
 	if (output_file.empty())
 		output_file = std::filesystem::path(input_file).filename().replace_extension(".particlereplay");
 
-	std::ofstream out(output_file, std::ios::binary);
-
-	if (!out)
-		throw std::runtime_error("failed to open output file \"" + output_file.string() + '"');
-
-	auto particles = load(out, input_file);
-
-
-	float particles_time = 0.0f;
-
-	std::cout << '\n' << N << " frame(s):\n";
-
-	int padding = static_cast<int>(std::log10(N));
-	int next_padding_shift = 10;
-
-	for (int i = 0; i < N; i += subsample)
 	{
-		auto t = particles.update(subsample, dt) / subsample;
+		std::ofstream out(output_file, std::ios::binary);
 
-		if ((i + 1) >= next_padding_shift)
+		if (!out)
+			throw std::runtime_error("failed to open output file \"" + output_file.string() + '"');
+
+		auto [writer, particles] = load(out, input_file);
+
+
+		float particles_time = 0.0f;
+
+		std::cout << '\n' << N << " frame(s):\n";
+
+		int padding = static_cast<int>(std::log10(N));
+		int next_padding_shift = 10;
+
+		for (int i = 0; i < N; i += subsample)
 		{
-			--padding;
-			next_padding_shift *= 10;
+			auto t = particles.update(out, writer, subsample, dt) / subsample;
+
+			if ((i + 1) >= next_padding_shift)
+			{
+				--padding;
+				next_padding_shift *= 10;
+			}
+
+			pad(std::cout, padding) << "t_" << (i + 1) << ": " << std::setprecision(2) << std::fixed << t << " ms\n" << std::flush;
+
+			particles_time += t;
 		}
 
-		pad(std::cout, padding) << "t_" << (i + 1) << ": " << std::setprecision(2) << std::fixed << t << " ms\n" << std::flush;
+		std::cout << "avg time: " << std::setprecision(2) << std::fixed << particles_time / N << " ms\n" << std::flush;
 
-		particles_time += t;
+		writer.finish(out);
 	}
-
-	std::cout << "avg time: " << std::setprecision(2) << std::fixed << particles_time / N << " ms\n" << std::flush;
 }

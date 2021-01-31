@@ -20,7 +20,7 @@ void main()
 {
 	vec4 p = camera.PV * vec4(vs_in[0].position.xyz, 1.0f);
 
-	vec2 s = vec2(vs_in[0].position.w / camera.aspect, vs_in[0].position.w);
+	vec2 s = (camera.P * vec4(vs_in[0].position.ww, 0.0f, 0.0f)).xy;
 
 	albedo = vs_in[0].color;
 

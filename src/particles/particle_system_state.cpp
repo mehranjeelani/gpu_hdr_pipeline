@@ -48,76 +48,66 @@ namespace
 		return header_info { static_cast<std::size_t>(num_particles < 0 ? -num_particles : num_particles), num_particles < 0 };
 	}
 
-	zlib_writer& write(zlib_writer& writer, const ParticleSystemParameters& params)
+	void write(std::ostream& file, zlib_writer& writer, const ParticleSystemParameters& params)
 	{
-		writer(params.bb_min);
-		writer(params.bb_max);
-		writer(params.min_particle_radius);
-		writer(params.max_particle_radius);
-		writer(params.gravity);
-		//writer(params.damping);
-		writer(params.bounce);
-		writer(params.coll_attraction);
-		writer(params.coll_damping);
-		writer(params.coll_shear);
-		writer(params.coll_spring);
-		return writer;
+		writer(file, params.bb_min);
+		writer(file, params.bb_max);
+		writer(file, params.min_particle_radius);
+		writer(file, params.max_particle_radius);
+		writer(file, params.gravity);
+		writer(file, params.bounce);
+		writer(file, params.coll_attraction);
+		writer(file, params.coll_damping);
+		writer(file, params.coll_shear);
+		writer(file, params.coll_spring);
 	}
 
-	zlib_reader& read(ParticleSystemParameters& params, zlib_reader& reader)
+	void read(ParticleSystemParameters& params, zlib_reader& reader, std::istream& file)
 	{
-		reader(params.bb_min);
-		reader(params.bb_max);
-		reader(params.min_particle_radius);
-		reader(params.max_particle_radius);
-		reader(params.gravity);
-		//reader(params.damping);
-		reader(params.bounce);
-		reader(params.coll_attraction);
-		reader(params.coll_damping);
-		reader(params.coll_shear);
-		reader(params.coll_spring);
-		return reader;
+		reader(params.bb_min, file);
+		reader(params.bb_max, file);
+		reader(params.min_particle_radius, file);
+		reader(params.max_particle_radius, file);
+		reader(params.gravity, file);
+		reader(params.bounce, file);
+		reader(params.coll_attraction, file);
+		reader(params.coll_damping, file);
+		reader(params.coll_shear, file);
+		reader(params.coll_spring, file);
 	}
 
-	zlib_writer& write_initial_particle_state(zlib_writer& writer, std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const ParticleSystemParameters& params)
+	void write_initial_particle_state(std::ostream& file, zlib_writer& writer, std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const ParticleSystemParameters& params)
 	{
-		writer(params);
-		writer(&x[0], num_particles);
-		writer(&y[0], num_particles);
-		writer(&z[0], num_particles);
-		writer(&r[0], num_particles);
-		writer(&color[0], num_particles);
-
-		return writer;
+		writer(file, params);
+		writer(file, &x[0], num_particles);
+		writer(file, &y[0], num_particles);
+		writer(file, &z[0], num_particles);
+		writer(file, &r[0], num_particles);
+		writer(file, &color[0], num_particles);
 	}
 
-	zlib_reader& read_initial_particle_state(zlib_reader& reader, std::size_t num_particles, float* x, float* y, float* z, float* r, std::uint32_t* color, ParticleSystemParameters& params)
+	void read_initial_particle_state(zlib_reader& reader, std::size_t num_particles, float* x, float* y, float* z, float* r, std::uint32_t* color, ParticleSystemParameters& params, std::istream& file)
 	{
-		reader(params);
-		reader(&x[0], num_particles);
-		reader(&y[0], num_particles);
-		reader(&z[0], num_particles);
-		reader(&r[0], num_particles);
-		reader(&color[0], num_particles);
-
-		return reader;
+		reader(params, file);
+		reader(&x[0], num_particles, file);
+		reader(&y[0], num_particles, file);
+		reader(&z[0], num_particles, file);
+		reader(&r[0], num_particles, file);
+		reader(&color[0], num_particles, file);
 	}
 
-	zlib_writer& write_frame_data(zlib_writer& writer, std::size_t num_particles, std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors)
+	void write_frame_data(std::ostream& file, zlib_writer& writer, std::size_t num_particles, std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors)
 	{
-		writer(static_cast<std::int64_t>(dt.count()));
-		writer(positions, num_particles * 4);
-		writer(colors, num_particles);
-
-		return writer;
+		writer(file, static_cast<std::int64_t>(dt.count()));
+		writer(file, positions, num_particles * 4);
+		writer(file, colors, num_particles);
 	}
 
-	zlib_reader& read_frame_data(zlib_reader& reader, std::size_t num_particles, std::chrono::nanoseconds& dt, float* positions, std::uint32_t* colors)
+	zlib_reader& read_frame_data(zlib_reader& reader, std::size_t num_particles, std::chrono::nanoseconds& dt, float* positions, std::uint32_t* colors, std::istream& file)
 	{
-		dt = std::chrono::nanoseconds(reader.read<std::int64_t>());
-		reader(positions, num_particles * 4);
-		reader(colors, num_particles);
+		dt = std::chrono::nanoseconds(reader.read<std::int64_t>(file));
+		reader(positions, num_particles * 4, file);
+		reader(colors, num_particles, file);
 
 		return reader;
 	}
@@ -127,44 +117,49 @@ std::ostream& save_particle_state(std::ostream& file, std::size_t num_particles,
 {
 	write_header(file, num_particles, false);
 
-	zlib_writer writer(file);
-	write_initial_particle_state(writer, num_particles, x, y, z, r, color, params);
+	zlib_writer writer;
+	write_initial_particle_state(file, writer, num_particles, x, y, z, r, color, params);
 
-	return file;
+	return writer.finish(file);
 }
 
 ParticleReplayWriter::ParticleReplayWriter(std::ostream& file, std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const ParticleSystemParameters& params)
-	: writer(write_header(file, num_particles, true)),
-	  num_particles(num_particles)
+	: num_particles(num_particles)
 {
-	write_initial_particle_state(writer, num_particles, x, y, z, r, color, params);
+	write_header(file, num_particles, true);
+	write_initial_particle_state(file, writer, num_particles, x, y, z, r, color, params);
 }
 
-void ParticleReplayWriter::add_frame(std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors)
+void ParticleReplayWriter::add_frame(std::ostream& file, std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors)
 {
-	write_frame_data(writer, num_particles, dt, positions, colors);
+	write_frame_data(file, writer, num_particles, dt, positions, colors);
+}
+
+std::ostream& ParticleReplayWriter::finish(std::ostream& file)
+{
+	return writer.finish(file);
 }
 
 std::istream& load_particles(ParticleSystemBuilder& builder, std::istream& file)
 {
 	auto [num_particles, is_replay] = read_header(file);
 
-	zlib_reader reader(file);
+	zlib_reader reader;
 
 	ParticleSystemParameters params;
 	auto position = alloc_buffer<float>(num_particles * 4);
 	auto color = alloc_buffer<std::uint32_t>(num_particles);
 
-	read_initial_particle_state(reader, num_particles, &position[0] + 0 * num_particles, &position[0] + 1 * num_particles, &position[0] + 2 * num_particles, &position[0] + 3 * num_particles, &color[0], params);
+	read_initial_particle_state(reader, num_particles, &position[0] + 0 * num_particles, &position[0] + 1 * num_particles, &position[0] + 2 * num_particles, &position[0] + 3 * num_particles, &color[0], params, file);
 
 	if (is_replay)
 	{
 		auto& replay_builder = builder.add_particle_replay(num_particles, &position[0], &color[0], params);
 
-		while (file)
+		while (reader)
 		{
 			std::chrono::nanoseconds dt;
-			read_frame_data(reader, num_particles, dt, &position[0], &color[0]);
+			read_frame_data(reader, num_particles, dt, &position[0], &color[0], file);
 			replay_builder.add_frame(dt, &position[0], &color[0]);
 		}
 	}
