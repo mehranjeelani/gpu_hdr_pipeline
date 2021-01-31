@@ -8,11 +8,12 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
                             const ParticleSystemParameters params,float dt)
 {
     auto tid = blockIdx.x * blockDim.x + threadIdx.x;
+    /***
     if(tid == 0 )
         printf("value in update kernel of y coordinate of particle 0 before update is %f\n",
             currentPos[1 * num_particles + tid]);
 
-
+    ***/
     if(tid < num_particles)
     {
         float radius = currentPos[3 * num_particles + tid];
@@ -59,17 +60,18 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
         color[tid] =  particleColor[tid];
 
     }
-
+    /**
     if(tid == 0 ){
         printf("value in update kernel of y coordinate of particle 0 after update is %f\n",position[tid * 4 + 1]);
         
     }
+    **/
     }
 
 void update_particles(float* position, std::uint32_t* color, float* prevPos, 
                     float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
                     const ParticleSystemParameters params,float dt){
-    printf("In update particles\n");
+    //printf("In update particles\n");
     dim3 blockSize (1024,1,1);
     dim3 gridSize (num_particles/blockSize.x+1,1,1);
     update_kernel<<<gridSize,blockSize>>>(position, color, prevPos, currentPos, particleColor,
@@ -77,5 +79,5 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
     //std::cout<<"Params bounce = "<<params.bounce<<std::endl;
     //std::cout<<"Params gravity = "<<params.gravity[1]<<std::endl;
     cudaDeviceSynchronize();
-    printf("leaving update particles\n");
+    //printf("leaving update particles\n");
 }
