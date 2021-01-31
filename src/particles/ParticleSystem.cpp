@@ -24,8 +24,8 @@ void ParticleSystem::reset(const float* x, const float* y, const float* z, const
 							const std::uint32_t* color)
 {
 	// TODO: reset particle system to the given state
-	//std::cout<<"In reset"<<std::endl;
-	//std::cout<<"in reset"<<std::endl;
+	// std::cout<<"In reset"<<std::endl;
+	// std::cout<<"in reset"<<std::endl;
 	
 	cudaMemcpy(currentPos + 0 * num_particles, x, num_particles * sizeof(float),cudaMemcpyHostToDevice);
 	cudaMemcpy(currentPos + 1 * num_particles, y, num_particles * sizeof(float),cudaMemcpyHostToDevice);
@@ -33,8 +33,8 @@ void ParticleSystem::reset(const float* x, const float* y, const float* z, const
 	cudaMemcpy(currentPos + 3 * num_particles, r, num_particles * sizeof(float),cudaMemcpyHostToDevice);
 	cudaMemcpy(particleColor, color, num_particles * sizeof(std::uint32_t),cudaMemcpyHostToDevice);
 	cudaMemcpy(prevPos, currentPos, 4 * num_particles * sizeof(float),cudaMemcpyHostToHost);
-	//std::cout<<"leaving reset"<<std::endl;
-	//std::cout<<"y cordinate of first particle in reset "<<y[0]<<std::endl;
+	// std::cout<<"leaving reset"<<std::endl;
+	// std::cout<<"y cordinate of first particle in reset "<<y[0]<<std::endl;
 }
 void update_particles(float* position, std::uint32_t* color, float* prevPos, 
 					float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
@@ -45,8 +45,8 @@ void ParticleSystem::update(float* position, std::uint32_t* color, float dt)
 	// TODO: update particle system by timestep dt (in seconds)
 	//       position and color are device pointers to write-only buffers to receive the result
 	// update_particles(position, std::uint32_t* color, float* input, std::size_t num_particles){
-	//std::cout<<"in update and will call update_particles"<<std::endl;
-	//std::cout<<"y cordinate of first particle in update "<<currentPos[1 * num_particles + 0]<<std::endl;
+	// std::cout<<"in update and will call update_particles"<<std::endl;
+	// std::cout<<"y cordinate of first particle in update "<<currentPos[1 * num_particles + 0]<<std::endl;
 	update_particles(position, color, prevPos, currentPos, particleColor, num_particles, params, dt);
 	// std::cout<<"leaving update"<<std::endl;
 }

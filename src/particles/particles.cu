@@ -71,13 +71,13 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
 void update_particles(float* position, std::uint32_t* color, float* prevPos, 
                     float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
                     const ParticleSystemParameters params,float dt){
-    //printf("In update particles\n");
+    // printf("In update particles\n");
     dim3 blockSize (1024,1,1);
     dim3 gridSize (num_particles/blockSize.x+1,1,1);
     update_kernel<<<gridSize,blockSize>>>(position, color, prevPos, currentPos, particleColor,
                                         num_particles,params,dt);
-    //std::cout<<"Params bounce = "<<params.bounce<<std::endl;
-    //std::cout<<"Params gravity = "<<params.gravity[1]<<std::endl;
+    // std::cout<<"Params bounce = "<<params.bounce<<std::endl;
+    // std::cout<<"Params gravity = "<<params.gravity[1]<<std::endl;
     cudaDeviceSynchronize();
-    //printf("leaving update particles\n");
+    // printf("leaving update particles\n");
 }
