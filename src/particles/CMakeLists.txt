@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.18)
 
-project(particles CXX CUDA)
+if (CUDAToolkit_FOUND) 
+	project(particles CXX CUDA)
+else ()
+	project(particles CXX)
+endif ()
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 

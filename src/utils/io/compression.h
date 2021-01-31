@@ -31,10 +31,7 @@ class zlib_writer
 
 	Bytef buffer[4096];
 
-	std::ostream& file;
-
-
-	int produce(int flush = Z_NO_FLUSH)
+	int produce(std::ostream& file, int flush = Z_NO_FLUSH)
 	{
 		stream.avail_out = sizeof(buffer);
 		stream.next_out = buffer;
@@ -48,8 +45,7 @@ class zlib_writer
 	}
 
 public:
-	zlib_writer(std::ostream& file)
-		: file(file)
+	zlib_writer()
 	{
 		stream.zalloc = &zalloc;
 		stream.zfree = &zfree;
@@ -62,7 +58,7 @@ public:
 	zlib_writer& operator =(zlib_writer&) = delete;
 
 	template <typename T>
-	void operator ()(const T* data, std::size_t size)
+	void operator ()(std::ostream& file, const T* data, std::size_t size)
 	{
 		static_assert(std::is_trivially_copyable_v<T>);
 
@@ -70,19 +66,23 @@ public:
 		stream.next_in = reinterpret_cast<const Bytef*>(data);
 
 		while (stream.avail_in)
-			produce();
+			produce(file);
 	}
 
 	template <typename T>
-	void operator ()(const T& data)
+	void operator ()(std::ostream& file, const T& data)
 	{
-		static_assert(std::is_trivially_copyable_v<T>);
-		operator ()(reinterpret_cast<const std::byte*>(&data), sizeof(data));
+		operator ()(file, &data, 1);
+	}
+
+	std::ostream& finish(std::ostream& file)
+	{
+		while (produce(file, Z_FINISH) != Z_STREAM_END);
+		return file;
 	}
 
 	~zlib_writer()
 	{
-		while (produce(Z_FINISH) != Z_STREAM_END);
 		deflateEnd(&stream);
 	}
 };
@@ -93,25 +93,31 @@ class zlib_reader
 
 	Bytef buffer[4096];
 
-	std::istream& file;
+	bool more = true;
 
-	int consume(int flush = Z_NO_FLUSH)
+	void consume(std::istream& file, int flush = Z_NO_FLUSH)
 	{
 		if (stream.avail_in == 0)
 		{
-			if (!file.read(reinterpret_cast<char*>(buffer), sizeof(buffer)) && !file.eof())
-				throw std::runtime_error("failed to read from particles file");
+			if (!file.read(reinterpret_cast<char*>(buffer), sizeof(buffer)))
+				if (!file.eof() || file.gcount() == 0)
+					throw std::runtime_error("failed to read from particles file");
 
 			stream.avail_in = file.gcount();
 			stream.next_in = buffer;
 		}
 
-		return zlib_throw_error(inflate(&stream, flush));
+		if (zlib_throw_error(inflate(&stream, flush)) == Z_STREAM_END)
+		{
+			while (stream.avail_in-- > 0)
+				file.putback(*stream.next_in++);
+
+			more = false;
+		}
 	}
 
 public:
-	zlib_reader(std::istream& file)
-		: file(file)
+	zlib_reader()
 	{
 		stream.zalloc = &zalloc;
 		stream.zfree = &zfree;
@@ -122,7 +128,7 @@ public:
 	}
 
 	template <typename T>
-	void operator ()(T* data, std::size_t size)
+	void operator ()(T* data, std::size_t size, std::istream& file)
 	{
 		static_assert(std::is_trivially_copyable_v<T>);
 
@@ -130,29 +136,27 @@ public:
 		stream.next_out = reinterpret_cast<Bytef*>(data);
 
 		while (stream.avail_out)
-			consume();
+			consume(file);
 	}
 
 	template <typename T>
-	void operator ()(T& data)
+	void operator ()(T& data, std::istream& file)
 	{
-		static_assert(std::is_trivially_copyable_v<T>);
-		operator ()(reinterpret_cast<std::byte*>(&data), sizeof(data));
+		(*this)(&data, 1, file);
 	}
 
 	template <typename T>
-	T read()
+	T read(std::istream& file)
 	{
 		T data;
-		operator ()(data);
+		operator ()(data, file);
 		return data;
 	}
 
+	explicit operator bool() const { return more; }
+
 	~zlib_reader()
 	{
-		while (stream.avail_in-- > 0)
-			file.putback(*stream.next_in++);
-
 		inflateEnd(&stream);
 	}
 };

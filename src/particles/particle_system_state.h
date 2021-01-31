@@ -43,7 +43,7 @@ protected:
 };
 
 
-class ParticleReplayWriter : public virtual ParticleReplayBuilder
+class ParticleReplayWriter
 {
 	zlib_writer writer;
 	std::size_t num_particles;
@@ -51,7 +51,9 @@ class ParticleReplayWriter : public virtual ParticleReplayBuilder
 public:
 	ParticleReplayWriter(std::ostream& file, std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const ParticleSystemParameters& params);
 
-	void add_frame(std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors) override;
+	void add_frame(std::ostream& file, std::chrono::nanoseconds dt, const float* positions, const std::uint32_t* colors);
+
+	std::ostream& finish(std::ostream& file);
 };
 
 

@@ -13,11 +13,12 @@
 #include <utils/CUDA/memory.h>
 #include <utils/CUDA/event.h>
 
-#include "particle_system_state.h"
 #include "particle_system_module.h"
 
 #include "ParticleSystemLoader.h"
 
+
+class ParticleReplayWriter;
 
 class CUDAParticles
 {
@@ -34,12 +35,10 @@ class CUDAParticles
 	std::unique_ptr<float[]> position_download_buffer;
 	std::unique_ptr<std::uint32_t[]> color_download_buffer;
 
-	ParticleReplayWriter writer;
-
 public:
-	CUDAParticles(std::ostream& file, particle_system_module& module, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params);
+	CUDAParticles(particle_system_module& module, std::size_t num_particles, std::unique_ptr<float[]> position, std::unique_ptr<std::uint32_t[]> color, const ParticleSystemParameters& params);
 
-	float update(int steps, float dt);
+	float update(std::ostream& file, ParticleReplayWriter& writer, int steps, float dt);
 };
 
 #endif // INCLUDED_CUDA_PARTICLES
