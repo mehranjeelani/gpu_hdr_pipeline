@@ -170,7 +170,7 @@ __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t n
                         float z_b = currentPos[2 * num_particles + particleId];
                         float distance = sqrt(pow(x_a - x_b,2)+pow(y_a - y_b,2) + pow(z_a-z_b,2));
                         //printf("dt is %f",dt);
-                        if(distance < r_a + r_b && tid != particleId){
+                        if(distance < r_a + r_b && tid != particleId && particleId < num_particles){
                             
                             
                             float vx_a =  (x_a - prevPos[0 * num_particles + tid])/dt;
