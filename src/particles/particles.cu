@@ -222,7 +222,7 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
                     const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration)
 {
                         // printf("In update particles\n");
-    dim3 blockSize (128,1,1);
+    dim3 blockSize (64,1,1);
     dim3 gridSize (num_particles/blockSize.x+1,1,1);
     update_kernel<<<gridSize,blockSize>>>(position, color, prevPos, currentPos, particleColor,
                                         num_particles,params,dt,acceleration);
