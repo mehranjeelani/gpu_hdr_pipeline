@@ -5,6 +5,7 @@
 #include <thrust/device_ptr.h>
 #include <thrust/fill.h>
 #include<thrust/device_malloc.h>
+#include<cmath>
 ParticleSystem::ParticleSystem(std::size_t num_particles, const float* x, const float* y, const float* z, 
 							const float* r, const std::uint32_t* color, const ParticleSystemParameters& params)
 	: num_particles(num_particles)
