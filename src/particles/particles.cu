@@ -238,7 +238,7 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
     //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
     //cudaDeviceSynchronize();
     //printf("After Sort\n");
-    sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
+    //sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
     cudaDeviceSynchronize();
     findCellStartEnd<<<gridSize,blockSize>>>(keys,cellStart,cellEnd,num_particles);
     cudaDeviceSynchronize();
