@@ -92,12 +92,13 @@ __global__ void calcHash(float* currentPos,std::size_t num_particles,
     }
 
 //*************************************************************************************************************
- 
+/** 
 __global__ void printFunction(int* a,int* b,std::size_t num_particles){
     for(int i=0;i<1;i++)
-        printf("cellStart[%d] = %d \t cellEnd[%d] = %d \n",622,a[622],i,b[622]);
+        printf("cellStart[%d] = %d \t cellEnd[%d] = %d  \ n ",622,a[622],i,b[622]);
         
  }
+ **/
 
  //**********************************************************************************************************
  __global__ void sort(int* keys,int* values,std::size_t num_particles){
