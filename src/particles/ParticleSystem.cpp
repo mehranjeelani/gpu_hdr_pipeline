@@ -21,9 +21,9 @@ ParticleSystem::ParticleSystem(std::size_t num_particles, const float* x, const 
 	particleColor = static_cast<std::uint32_t*>(c);
 	cudaMalloc(&a, 3*num_particles*sizeof(float));//+ num_particles * sizeof(std::uint32_t));
 	acceleration = static_cast<float*>(a);
-	int N_x = floor((params.bb_max[0] - params.bb_min[0])/(2*params.max_particle_radius))+1;
-	int N_y = floor((params.bb_max[1] - params.bb_min[1])/(2*params.max_particle_radius))+1;
-	int N_z = floor((params.bb_max[2] - params.bb_min[2])/(2*params.max_particle_radius))+1;
+	int N_x = ceil((params.bb_max[0] - params.bb_min[0])/(2*params.max_particle_radius));
+	int N_y = ceil((params.bb_max[1] - params.bb_min[1])/(2*params.max_particle_radius));
+	int N_z = ceil((params.bb_max[2] - params.bb_min[2])/(2*params.max_particle_radius));
 	cudaMalloc(&cS, N_x*N_y*N_z*sizeof(int));
 	cellStart = static_cast<int*>(cS);
 	cudaMalloc(&cE, N_x*N_y*N_z*sizeof(int));
