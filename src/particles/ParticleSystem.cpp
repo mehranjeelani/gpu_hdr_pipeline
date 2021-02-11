@@ -28,12 +28,12 @@ ParticleSystem::ParticleSystem(std::size_t num_particles, const float* x, const 
 	cellStart = static_cast<int*>(cS);
 	cudaMalloc(&cE, N_x*N_y*N_z*sizeof(int));
 	cellEnd = static_cast<int*>(cE);
-	cudaMalloc(&k, num_particles*sizeof(int));
-	keys = static_cast<int*>(k);
-	//keys = thrust::device_malloc<int>(num_particles);
-	//values = thrust::device_malloc<int>(num_particles);
-	cudaMalloc(&v, num_particles*sizeof(int));
-	values = static_cast<int*>(v);
+	//cudaMalloc(&k, num_particles*sizeof(int));
+	//keys = static_cast<int*>(k);
+	keys = thrust::device_malloc<int>(num_particles);
+	values = thrust::device_malloc<int>(num_particles);
+	//cudaMalloc(&v, num_particles*sizeof(int));
+	//values = static_cast<int*>(v);
 	// std::cout<<"calling reset"<<std::endl;
 	reset(x, y, z, r, color);
 
@@ -54,9 +54,9 @@ void ParticleSystem::reset(const float* x, const float* y, const float* z, const
 	cudaMemcpy(prevPos, currentPos, 4 * num_particles * sizeof(float),cudaMemcpyHostToHost);
 	// std::cout<<"leaving reset"<<std::endl;
 	// std::cout<<"y cordinate of first particle in reset "<<y[0]<<std::endl;
-	cudaMemset(keys, 0, num_particles*sizeof(int));
+	//cudaMemset(keys, 0, num_particles*sizeof(int));
 	cudaMemset(acceleration, 0, 3*num_particles*sizeof(float));
-	cudaMemset(values, 0, num_particles*sizeof(int));
+	//cudaMemset(values, 0, num_particles*sizeof(int));
 	int N_x = floor((params.bb_max[0] - params.bb_min[0])/(2*params.max_particle_radius))+1;
 	int N_y = floor((params.bb_max[1] - params.bb_min[1])/(2*params.max_particle_radius))+1;
 	int N_z = floor((params.bb_max[2] - params.bb_min[2])/(2*params.max_particle_radius))+1;
@@ -68,7 +68,7 @@ void ParticleSystem::reset(const float* x, const float* y, const float* z, const
 }
 void update_particles(float* position, std::uint32_t* color, float* prevPos, 
 					float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
-					 const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration);
+					 const ParticleSystemParameters params,float dt,thrust::device_ptr<int> keys,thrust::device_ptr<int> values,int* cellStart,int* cellEnd,float* acceleration);
 
 void ParticleSystem::update(float* position, std::uint32_t* color, float dt)
 {
