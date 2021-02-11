@@ -9,8 +9,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<IF:$<BOOL:${WIN32}>,bin,lib>")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --ptxas-options=-v")
-set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS};-lineinfo")
+
 option(BUILD_TOOLS "build tools" OFF)
 option(INTERACTIVE "interactive build" OFF)
 
@@ -47,7 +46,10 @@ function(configure_project name)
 		CUDA_SEPARABLE_COMPILATION ON
 		POSITION_INDEPENDENT_CODE ON
 	)
-
+	target_compile_options(${name} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
+                       --generate-line-info
+                      
+                       >)
 	if (FULL_VERSION)
 		target_compile_definitions(${name} PRIVATE -DFULL_VERSION)
 	endif ()
