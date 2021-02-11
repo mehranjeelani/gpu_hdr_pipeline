@@ -224,7 +224,7 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
                     const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration)
 {
                         // printf("In update particles\n");
-    dim3 blockSize (512,1,1);
+    dim3 blockSize (256,1,1);
     dim3 gridSize (num_particles/blockSize.x+1,1,1);
     update_kernel<<<gridSize,blockSize>>>(position, color, prevPos, currentPos, particleColor,
                                         num_particles,params,dt,acceleration);
@@ -240,8 +240,8 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
     //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
     //cudaDeviceSynchronize();
     //printf("After Sort\n");
-    sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
-    cudaDeviceSynchronize();
+    //sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
+    //cudaDeviceSynchronize();
     findCellStartEnd<<<gridSize,blockSize>>>(keys,cellStart,cellEnd,num_particles);
     cudaDeviceSynchronize();
     //printFunction<<<(1,1,1),(1,1,1)>>>(cellStart,cellEnd,num_particles);
