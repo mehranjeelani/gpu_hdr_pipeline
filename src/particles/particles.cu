@@ -159,7 +159,8 @@ __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t n
                     int startIndex = cellStart[neighbor_cell];
                     int endIndex = cellEnd[neighbor_cell];
                     for(int p=startIndex;p<=endIndex;p++){
-                        int particleId = values[p];
+                        int particleId = (p>=0 && p<num_particles?values[p]:0);
+                        
                         float r_a = currentPos[3 * num_particles + tid];
                         float r_b = currentPos[3 * num_particles + particleId];
                         float x_a = currentPos[0 * num_particles + tid];
