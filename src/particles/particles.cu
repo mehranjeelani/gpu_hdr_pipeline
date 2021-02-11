@@ -4,6 +4,11 @@
 #include<iostream>
 #include <thrust/device_ptr.h>
 #include <thrust/sort.h>
+#include <thrust/device_malloc.h>
+#include <thrust/copy.h>
+#include <thrust/device_vector.h>
+#include <thrust/fill.h>
+#include <thrust/host_vector.h>
 __global__ void update_kernel(float* position, std::uint32_t* color, float* prevPos, float* currentPos,
                             std::uint32_t* particleColor, std::size_t num_particles,
                             const ParticleSystemParameters params,float dt,float* acceleration)
@@ -75,7 +80,7 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
 
 __global__ void calcHash(float* currentPos,std::size_t num_particles,
                                                 const ParticleSystemParameters params,
-                                                int* keys, int* values,int N_x,int N_y,int N_z)
+                                                int* keys,int* values,int N_x,int N_y,int N_z)
 {
         auto tid = blockIdx.x * blockDim.x + threadIdx.x;
         if(tid<num_particles){
@@ -95,20 +100,21 @@ __global__ void calcHash(float* currentPos,std::size_t num_particles,
     }
 
 //*************************************************************************************************************
-/** 
+
 __global__ void printFunction(int* a,int* b,std::size_t num_particles){
-    for(int i=0;i<1;i++)
-        printf("cellStart[%d] = %d \t cellEnd[%d] = %d  \ n ",622,a[622],i,b[622]);
+    for(int i=0;i<10;i++)
+        printf("keys[%d] = %d \t values[%d] = %d\n",i,a[i],i,b[i]);
         
  }
- **/
+ 
 
  //**********************************************************************************************************
- /**
+ 
  __global__ void sort(int* keys,int* values,std::size_t num_particles){
-    thrust::sort_by_key(thrust::device,keys, keys + num_particles, values);
+   
+    thrust::sort_by_key(thrust::device,keys,keys+num_particles,values);
 }
-**/
+
 //***********************************************************************************************************
 __global__ void findCellStartEnd( int* keys,int* cellStart,int* cellEnd,std::size_t num_particles){
     auto tid = blockIdx.x * blockDim.x + threadIdx.x;
@@ -141,7 +147,7 @@ __global__ void findCellStartEnd( int* keys,int* cellStart,int* cellEnd,std::siz
 //*********************************************************************************************************** 
 
 __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t num_particles,const ParticleSystemParameters params,
-                                  float dt,  int* keys, int* values, int* cellStart,int* cellEnd,int N_x,int N_y,int N_z,float* acceleration,std::uint32_t* color)
+                                  float dt,  int* keys,int* values, int* cellStart,int* cellEnd,int N_x,int N_y,int N_z,float* acceleration,std::uint32_t* color)
 {
     auto tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid<num_particles){
@@ -231,35 +237,32 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
                     float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
                     const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration)
 {
-                        // printf("In update particles\n");
+                       
     dim3 blockSize (256,1,1);
     dim3 gridSize (num_particles/blockSize.x+1,1,1);
     update_kernel<<<gridSize,blockSize>>>(position, color, prevPos, currentPos, particleColor,
                                         num_particles,params,dt,acceleration);
-    // std::cout<<"Params bounce = "<<params.bounce<<std::endl;
-    // std::cout<<"Params gravity = "<<params.gravity[1]<<std::endl;
+    
     cudaDeviceSynchronize();
     int N_x = ceil((params.bb_max[0] - params.bb_min[0])/(2*params.max_particle_radius));
     int N_y = ceil((params.bb_max[1] - params.bb_min[1])/(2*params.max_particle_radius));
     int N_z = ceil((params.bb_max[2] - params.bb_min[2])/(2*params.max_particle_radius));
+    
     calcHash<<<gridSize,blockSize>>>(currentPos,num_particles,params,keys,values,N_x,N_y,N_z);
     cudaDeviceSynchronize();
     //printf("Before Sort\n");
     //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
-    //cudaDeviceSynchronize();
-    //printf("After Sort\n");
-    //sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
-    //cudaDeviceSynchronize();
-    thrust::device_ptr<int> tkeys(keys);
-    thrust::device_ptr<int> tvalues(values);
-    thrust::sort_by_key(tkeys, tkeys + num_particles, tvalues);
-    keys = thrust::raw_pointer_cast(tkeys);
-    values = thrust::raw_pointer_cast(tvalues);
-    findCellStartEnd<<<gridSize,blockSize>>>(keys,cellStart,cellEnd,num_particles);
     cudaDeviceSynchronize();
-    //printFunction<<<(1,1,1),(1,1,1)>>>(cellStart,cellEnd,num_particles);
-    //cudaDeviceSynchronize();
-    resolveCollission<<<gridSize,blockSize>>>(currentPos,prevPos,num_particles,params,dt,keys,values,cellStart,cellEnd,N_x,N_y,N_z,acceleration,color);
-    cudaDeviceSynchronize();    
-    // printf("leaving update particles\n");
+    //thrust::device_ptr<int> V = thrust::device_malloc<int>(1);
+    sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
+    cudaDeviceSynchronize();
+    //printf("After Sort\n");
+    //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
+    cudaDeviceSynchronize();
+    findCellStartEnd<<<gridSize,blockSize>>>( keys,cellStart,cellEnd, num_particles);
+    cudaDeviceSynchronize();
+    resolveCollission<<<gridSize,blockSize>>>(currentPos,prevPos,num_particles,params,dt,keys,values,cellStart,
+                                            cellEnd,N_x,N_y,N_z,acceleration,color);
+    
+    cudaDeviceSynchronize();
 }

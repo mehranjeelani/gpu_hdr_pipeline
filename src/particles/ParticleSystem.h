@@ -8,7 +8,7 @@
 #include<cstdint>
 #include <thrust/device_ptr.h>
 #include "particle_system_module.h"
-
+#include <thrust/fill.h>
 
 class ParticleSystem
 {
@@ -19,8 +19,8 @@ class ParticleSystem
 	int* grid;
 	int* keys;
 	int* values;
-	//thrust::device_ptr<int> keys;
-	//thrust::device_ptr<int> values;
+	//thrust::device_ptr keys;
+	//thrust::device_ptr values;
 	int* cellStart;
 	int* cellEnd;
 	std::uint32_t* particleColor;
