@@ -17,10 +17,10 @@ class ParticleSystem
 	float* currentPos;
 	float* prevPos;
 	int* grid;
-	//int* keys;
-	//int* values;
-	thrust::device_ptr<int> keys;
-	thrust::device_ptr<int> values;
+	int* keys;
+	int* values;
+	//thrust::device_ptr<int> keys;
+	//thrust::device_ptr<int> values;
 	int* cellStart;
 	int* cellEnd;
 	std::uint32_t* particleColor;
