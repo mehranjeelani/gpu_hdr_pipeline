@@ -7,7 +7,9 @@
 #include<cstddef>
 #include<cstdint>
 #include "particle_system_module.h"
-const int cellSize = 5;
+
+
+
 class ParticleSystem
 {
 	const std::size_t num_particles;
@@ -21,7 +23,7 @@ class ParticleSystem
 	int* cellEnd;
 	std::uint32_t* particleColor;
 	float* acceleration;
-	
+	float cellSize;
 
 public:
 	ParticleSystem(std::size_t num_particles, const float* x, const float* y, const float* z, const float* r, const std::uint32_t* color, const  ParticleSystemParameters& params);

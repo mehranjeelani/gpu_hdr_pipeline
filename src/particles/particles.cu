@@ -8,12 +8,7 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
                             const ParticleSystemParameters params,float dt,float* acceleration)
 {
     auto tid = blockIdx.x * blockDim.x + threadIdx.x;
-    /***
-    if(tid == 0 )
-        printf("value in update kernel of y coordinate of particle 0 before update is %f\n",
-            currentPos[1 * num_particles + tid]);
-
-    ***/
+   
     if(tid < num_particles)
     {
         float radius = currentPos[3 * num_particles + tid];
@@ -60,13 +55,8 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
         color[tid] =  particleColor[tid];
 
     }
-    /**
-    if(tid == 0 ){
-        printf("value in update kernel of y coordinate of particle 0 after update is %f\n",position[tid * 4 + 1]);
-        
-    }
-    **/
-    }
+  
+}
 
 
     //*********************************************************************************
@@ -74,7 +64,7 @@ __global__ void update_kernel(float* position, std::uint32_t* color, float* prev
 
 __global__ void calcHash(float* currentPos,std::size_t num_particles,
                                                 const ParticleSystemParameters params,
-                                                int* keys,int* values,int N_x,int N_y,int N_z)
+                                                int* keys,int* values,int N_x,int N_y,int N_z,float cellSize)
 {
         auto tid = blockIdx.x * blockDim.x + threadIdx.x;
         if(tid<num_particles){
@@ -141,7 +131,7 @@ __global__ void findCellStartEnd( int* keys,int* cellStart,int* cellEnd,std::siz
 //*********************************************************************************************************** 
 
 __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t num_particles,const ParticleSystemParameters params,
-                                  float dt,  int* keys,int* values, int* cellStart,int* cellEnd,int N_x,int N_y,int N_z,float* acceleration,std::uint32_t* color)
+                                  float dt,  int* keys,int* values, int* cellStart,int* cellEnd,int N_x,int N_y,int N_z,float* acceleration,std::uint32_t* color,float cellSize)
 {
     auto tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid<num_particles){
@@ -229,7 +219,7 @@ __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t n
 //***********************************************************************************************************
 void update_particles(float* position, std::uint32_t* color, float* prevPos, 
                     float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
-                    const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration)
+                    const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration,float cellSize)
 {
                        
     dim3 blockSize (256,1,1);
@@ -242,7 +232,7 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
     int N_y = ceil((params.bb_max[1] - params.bb_min[1])/(cellSize));
     int N_z = ceil((params.bb_max[2] - params.bb_min[2])/(cellSize));
     
-    calcHash<<<gridSize,blockSize>>>(currentPos,num_particles,params,keys,values,N_x,N_y,N_z);
+    calcHash<<<gridSize,blockSize>>>(currentPos,num_particles,params,keys,values,N_x,N_y,N_z,cellSize);
     cudaDeviceSynchronize();
     //printf("Before Sort\n");
     //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
@@ -254,8 +244,8 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
     //cudaDeviceSynchronize();
     findCellStartEnd<<<gridSize,blockSize>>>( keys,cellStart,cellEnd, num_particles);
     cudaDeviceSynchronize();
-   resolveCollission<<<gridSize,blockSize>>>(currentPos,prevPos,num_particles,params,dt,keys,values,cellStart,
-                                            cellEnd,N_x,N_y,N_z,acceleration,color);
+  resolveCollission<<<gridSize,blockSize>>>(currentPos,prevPos,num_particles,params,dt,keys,values,cellStart,
+                                            cellEnd,N_x,N_y,N_z,acceleration,color,cellSize);
     
     cudaDeviceSynchronize();
     

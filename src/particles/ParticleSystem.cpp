@@ -8,7 +8,8 @@ ParticleSystem::ParticleSystem(std::size_t num_particles, const float* x, const 
 	: num_particles(num_particles)
 	, params(params)
 {
-	//printf("Max Particle Radius is %f \n",params.max_particle_radius);
+	cellSize = 2*params.max_particle_radius;
+	
 	void *prev,*c,*curr,*cS,*cE,*a;
 	cudaMalloc(&curr, num_particles*4*sizeof(float));
 	currentPos = static_cast<float*>(curr);
@@ -41,7 +42,7 @@ void ParticleSystem::reset(const float* x, const float* y, const float* z, const
 	cudaMemcpy(currentPos + 2 * num_particles, z, num_particles * sizeof(float),cudaMemcpyHostToDevice);
 	cudaMemcpy(currentPos + 3 * num_particles, r, num_particles * sizeof(float),cudaMemcpyHostToDevice);
 	cudaMemcpy(particleColor, color, num_particles * sizeof(std::uint32_t),cudaMemcpyHostToDevice);
-	cudaMemcpy(prevPos, currentPos, 4 * num_particles * sizeof(float),cudaMemcpyHostToHost);
+	cudaMemcpy(prevPos, currentPos, 4 * num_particles * sizeof(float),cudaMemcpyDeviceToDevice);
 	cudaMemset(acceleration, 0, 3*num_particles*sizeof(float));
 	int N_x = floor((params.bb_max[0] - params.bb_min[0])/(cellSize))+1;
 	int N_y = floor((params.bb_max[1] - params.bb_min[1])/(cellSize))+1;
@@ -53,11 +54,11 @@ void ParticleSystem::reset(const float* x, const float* y, const float* z, const
 }
 void update_particles(float* position, std::uint32_t* color, float* prevPos, 
 					float* currentPos,std::uint32_t* particleColor, std::size_t num_particles,
-					 const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration);
+					 const ParticleSystemParameters params,float dt,int* keys,int* values,int* cellStart,int* cellEnd,float* acceleration,float cellSize);
 
 void ParticleSystem::update(float* position, std::uint32_t* color, float dt)
 {
 	
-	update_particles(position, color, prevPos, currentPos, particleColor, num_particles, params, dt,keys,values,cellStart,cellEnd,acceleration);
+	update_particles(position, color, prevPos, currentPos, particleColor, num_particles, params, dt,keys,values,cellStart,cellEnd,acceleration,cellSize);
 
 }
