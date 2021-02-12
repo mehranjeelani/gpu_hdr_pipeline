@@ -17,9 +17,9 @@ steps:
     commands:
       - build/bin/particles assets/12345_42.particles
 
-  - name: memcheck
-    image: cguds/cuda
-    commands:
+ - name: memcheck
+   image: cguds/cuda
+  commands:
       - cuda-memcheck --error-exitcode 42 build/bin/particles assets/12345_42.particles
 
 

@@ -185,9 +185,9 @@ __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t n
                             float tvx = (vx_b - vx_a) - dab_x*dotProduct;
                             float tvy = (vy_b - vy_a) - dab_y*dotProduct;
                             float tvz = (vz_b - vz_a) - dab_z*dotProduct;
-                            float fsx = -params.coll_spring *(r_a+r_b-distance)*dab_x;
-                            float fsy = -params.coll_spring *(r_a+r_b-distance)*dab_y;
-                            float fsz = -params.coll_spring *(r_a+r_b-distance)*dab_z;
+                            float fsx = -1 * params.coll_spring *(r_a+r_b-distance)*dab_x;
+                            float fsy = -1 * params.coll_spring *(r_a+r_b-distance)*dab_y;
+                            float fsz = -1 * params.coll_spring *(r_a+r_b-distance)*dab_z;
                             float fdx = params.coll_damping*(vx_b - vx_a);
                             float fdy = params.coll_damping*(vy_b - vy_a);
                             float fdz = params.coll_damping*(vz_b - vz_a);
