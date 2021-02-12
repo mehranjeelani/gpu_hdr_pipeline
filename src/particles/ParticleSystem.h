@@ -6,10 +6,8 @@
 #include <cuda_runtime_api.h>
 #include<cstddef>
 #include<cstdint>
-#include <thrust/device_ptr.h>
 #include "particle_system_module.h"
-#include <thrust/fill.h>
-
+const int cellSize = 5;
 class ParticleSystem
 {
 	const std::size_t num_particles;
@@ -19,8 +17,6 @@ class ParticleSystem
 	int* grid;
 	int* keys;
 	int* values;
-	//thrust::device_ptr keys;
-	//thrust::device_ptr values;
 	int* cellStart;
 	int* cellEnd;
 	std::uint32_t* particleColor;

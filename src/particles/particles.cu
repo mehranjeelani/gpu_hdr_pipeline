@@ -2,13 +2,7 @@
 #include<cstdint>
 #include "ParticleSystem.h"
 #include<iostream>
-#include <thrust/device_ptr.h>
 #include <thrust/sort.h>
-#include <thrust/device_malloc.h>
-#include <thrust/copy.h>
-#include <thrust/device_vector.h>
-#include <thrust/fill.h>
-#include <thrust/host_vector.h>
 __global__ void update_kernel(float* position, std::uint32_t* color, float* prevPos, float* currentPos,
                             std::uint32_t* particleColor, std::size_t num_particles,
                             const ParticleSystemParameters params,float dt,float* acceleration)
@@ -86,11 +80,11 @@ __global__ void calcHash(float* currentPos,std::size_t num_particles,
         if(tid<num_particles){
 
            
-            int cell_x = ceil((currentPos[0 * num_particles + tid]-params.bb_min[0])/(2*params.max_particle_radius))-1;
+            int cell_x = ceil((currentPos[0 * num_particles + tid]-params.bb_min[0])/(cellSize))-1;
             cell_x = (cell_x<0?0:cell_x);
-            int cell_y = ceil((currentPos[1 * num_particles + tid]-params.bb_min[1])/(2*params.max_particle_radius))-1;
+            int cell_y = ceil((currentPos[1 * num_particles + tid]-params.bb_min[1])/(cellSize))-1;
             cell_y = (cell_y<0?0:cell_y);
-            int cell_z = ceil((currentPos[2 * num_particles + tid] - params.bb_min[2])/(2*params.max_particle_radius))-1;
+            int cell_z = ceil((currentPos[2 * num_particles + tid] - params.bb_min[2])/(cellSize))-1;
             cell_z = (cell_z<0?0:cell_z);
             int cell_index = cell_y*N_x*N_z + cell_z*N_x + cell_x;
             keys[tid] = cell_index;
@@ -100,13 +94,13 @@ __global__ void calcHash(float* currentPos,std::size_t num_particles,
     }
 
 //*************************************************************************************************************
-
+/**
 __global__ void printFunction(int* a,int* b,std::size_t num_particles){
     for(int i=0;i<10;i++)
         printf("keys[%d] = %d \t values[%d] = %d\n",i,a[i],i,b[i]);
         
  }
- 
+ **/
 
  //**********************************************************************************************************
  
@@ -151,11 +145,11 @@ __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t n
 {
     auto tid = blockIdx.x * blockDim.x + threadIdx.x;
     if(tid<num_particles){
-        int cell_x = ceil((currentPos[0 * num_particles + tid]-params.bb_min[0])/(2*params.max_particle_radius))-1;
+        int cell_x = ceil((currentPos[0 * num_particles + tid]-params.bb_min[0])/(cellSize))-1;
         cell_x = (cell_x<0?0:cell_x);
-        int cell_y = ceil((currentPos[1 * num_particles + tid]-params.bb_min[1])/(2*params.max_particle_radius))-1;
+        int cell_y = ceil((currentPos[1 * num_particles + tid]-params.bb_min[1])/(cellSize))-1;
         cell_y = (cell_y<0?0:cell_y);
-        int cell_z = ceil((currentPos[2 * num_particles + tid] - params.bb_min[2])/(2*params.max_particle_radius))-1;
+        int cell_z = ceil((currentPos[2 * num_particles + tid] - params.bb_min[2])/(cellSize))-1;
         cell_z = (cell_z<0?0:cell_z);
         //int cell_index = cell_y*N_x*N_z + cell_z*N_x + cell_x;
         float Force_x,Force_y,Force_z;
@@ -187,7 +181,7 @@ __global__ void resolveCollission(float* currentPos,float* prevPos,std::size_t n
                         //printf("dt is %f",dt);
                         if(distance < r_a + r_b && tid != particleId && particleId < num_particles){
                             
-                            
+                            //color[tid] = 	0x000000FF;
                             float vx_a =  (x_a - prevPos[0 * num_particles + tid])/dt;
                             float vy_a =  (y_a - prevPos[1 * num_particles + tid])/dt;
                             float vz_a =  (z_a - prevPos[2 * num_particles + tid])/dt;
@@ -244,25 +238,25 @@ void update_particles(float* position, std::uint32_t* color, float* prevPos,
                                         num_particles,params,dt,acceleration);
     
     cudaDeviceSynchronize();
-    int N_x = ceil((params.bb_max[0] - params.bb_min[0])/(2*params.max_particle_radius));
-    int N_y = ceil((params.bb_max[1] - params.bb_min[1])/(2*params.max_particle_radius));
-    int N_z = ceil((params.bb_max[2] - params.bb_min[2])/(2*params.max_particle_radius));
+    int N_x = ceil((params.bb_max[0] - params.bb_min[0])/(cellSize));
+    int N_y = ceil((params.bb_max[1] - params.bb_min[1])/(cellSize));
+    int N_z = ceil((params.bb_max[2] - params.bb_min[2])/(cellSize));
     
     calcHash<<<gridSize,blockSize>>>(currentPos,num_particles,params,keys,values,N_x,N_y,N_z);
     cudaDeviceSynchronize();
     //printf("Before Sort\n");
     //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
-    cudaDeviceSynchronize();
-    //thrust::device_ptr<int> V = thrust::device_malloc<int>(1);
+    //cudaDeviceSynchronize();
     sort<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
     cudaDeviceSynchronize();
     //printf("After Sort\n");
     //printFunction<<<(1,1,1),(1,1,1)>>>(keys,values,num_particles);
-    cudaDeviceSynchronize();
+    //cudaDeviceSynchronize();
     findCellStartEnd<<<gridSize,blockSize>>>( keys,cellStart,cellEnd, num_particles);
     cudaDeviceSynchronize();
-    resolveCollission<<<gridSize,blockSize>>>(currentPos,prevPos,num_particles,params,dt,keys,values,cellStart,
+   resolveCollission<<<gridSize,blockSize>>>(currentPos,prevPos,num_particles,params,dt,keys,values,cellStart,
                                             cellEnd,N_x,N_y,N_z,acceleration,color);
     
     cudaDeviceSynchronize();
+    
 }
